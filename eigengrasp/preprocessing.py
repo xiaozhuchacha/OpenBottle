@@ -19,8 +19,11 @@ def main():
     # csv_to_mat(data_dir, data_file)
     mat_to_csv(data_dir, data_file)
 
-    return
     print "Loaded array with %i samples and %i features" % data.shape
+    return
+
+
+def run_pca(data):
 
     normalized_data, column_maxs, column_mins = normalize(data)
 
@@ -56,7 +59,6 @@ def main():
 
     plt.show()
 
-    print "All done!"
 
 
 def normalize(data):
