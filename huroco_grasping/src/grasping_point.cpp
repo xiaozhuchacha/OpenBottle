@@ -25,7 +25,7 @@ Grasp::~Grasp()
 
 void Grasp::normalizeVect(Vect &norm_vect)
 {
-	tf::Vector3 base_endpoint(current_pose_.position.x, current_pose_.position.y, current_pose_.position.z);
+	//tf::Vector3 base_endpoint(current_pose_.position.x, current_pose_.position.y, current_pose_.position.z);
 
 	tf::TransformListener listener;
 	tf::StampedTransform transform;
@@ -74,20 +74,22 @@ void Grasp::normalizeVect(Vect &norm_vect)
 
 		//printf("forearm: x:%f, y:%f, z:%f\n", forearm_x, forearm_y, forearm_z);
 
-		tf::Vector3 obj_endpoint = transform * base_endpoint;
+		double x_avg = (upper_forearm_x + lower_forearm_x + current_pose_.position.x)/3;
+		double y_avg = (upper_forearm_y + lower_forearm_y + current_pose_.position.y)/3;
+		double z_avg = (upper_forearm_z + lower_forearm_z + current_pose_.position.z)/3;
+
+		tf::Vector3 obj_endpoint = transform * tf::Vector3(x_avg, y_avg, z_avg);
 
 		double end_x = obj_endpoint.getX();
 		double end_y = obj_endpoint.getY();
 		double end_z = obj_endpoint.getZ();
 
-		double x = (upper_forearm_x + lower_forearm_x + end_x)/3;
-		double y = (upper_forearm_y + lower_forearm_y + end_y)/3;
-		double z = (upper_forearm_z + lower_forearm_z + end_z)/3;
+		printf("x:%f, y:%f, z:%f\n", end_x, end_y, end_z);
 
-		double length = sqrt(pow(x,2) + pow(y,2) + pow(z, 2));
+		double length = sqrt(pow(end_x,2) + pow(end_y,2) + pow(end_z, 2));
 
-		norm_vect.x = x / length * radius_;
-		norm_vect.y = y / length * radius_;
+		norm_vect.x = end_x / length * radius_;
+		norm_vect.y = end_y / length * radius_;
 		norm_vect.z = 0;
 		
 
