@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<robot name="glove_hand" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:property name="palm_width" value=".075" />
+  <xacro:property name="palm_length" value=".075" />
+  <xacro:property name="proximal_phalange_length" value=".03" />
+  <xacro:property name="proximal_phalanx_length" value=".03" />
+  <xacro:property name="middle_phalange_length" value=".025" />
+  <xacro:property name="distal_phalange_length" value=".021" />
+  <xacro:property name="distal_phalanx_length" value=".028" />
+  <xacro:property name="pi" value="3.1415" />
+
+  <material name="base">
+    <color rgba="0.0 0.0 0.0 1"/>
+  </material>
+
+  <material name="skin">
+    <color rgba=".91 .60 .37 1"/>
+    <!--color rgba="0.0 1.0 0.0 1"/-->
+  </material>
+
+  <link name="glove_link">
+    <visual>
+      <geometry>
+        <box size=".005 .005 .005"/>
+      </geometry>
+      <material name="base"/>
+    </visual>
+  </link>
+
+  <link name="palm_link">
+    <visual>
+      <geometry>
+        <box size="${palm_length} ${palm_width} .02"/>
+      </geometry>
+      <material name="skin"/>
+    </visual>
+  </link>
+
+
+  <xacro:macro name="hand_segment" params="name len">
+    <link name="${name}">
+      <visual>
+        <geometry>
+          <cylinder length="${len}" radius=".006"/>
+        </geometry>
+        <origin xyz="${len/2} 0 0" rpy="0 ${pi/2} 0"/>
+        <material name="skin"/>
+      </visual>
+    </link>
+  </xacro:macro>
+
+  <joint name="palm_joint" type="continuous">
+    <parent link="glove_link"/>
+    <child link="palm_link"/>
+  </joint>
+
+  <xacro:macro name="hand_joint" params="name parent child">
+    <joint name="${name}" type="continuous">
+      <parent link="${parent}"/>
+      <child link="${child}"/>
+    </joint>
+  </xacro:macro>
+
+
+  <!-- Thumb -->
+  <xacro:hand_segment name="proximal_phalanx_link_1" len="${proximal_phalanx_length}"/>
+  <xacro:hand_joint name="proximal_phalanx_1" parent="palm_link" child="proximal_phalanx_link_1"/>
+
+  <xacro:hand_segment name="distal_phalanx_link_1" len="${distal_phalanx_length}"/>
+  <xacro:hand_joint name="distal_phalanx_1" parent="proximal_phalanx_link_1" child="distal_phalanx_link_1"/>
+
+  <!-- Index finger -->
+  <xacro:hand_segment name="proximal_phalange_link_1" len="${proximal_phalange_length}"/>
+  <xacro:hand_joint name="proximal_phalange_1" parent="palm_link" child="proximal_phalange_link_1"/>
+
+  <xacro:hand_segment name="middle_phalange_link_1" len="${middle_phalange_length}"/>
+  <xacro:hand_joint name="middle_phalange_1" parent="proximal_phalange_link_1" child="middle_phalange_link_1"/>
+
+  <xacro:hand_segment name="distal_phalange_link_1" len="${distal_phalange_length}"/>
+  <xacro:hand_joint name="distal_phalange_1" parent="middle_phalange_link_1" child="distal_phalange_link_1"/>
+
+  <!-- Middle finger -->
+  <xacro:hand_segment name="proximal_phalange_link_2" len="${proximal_phalange_length}"/>
+  <xacro:hand_joint name="proximal_phalange_2" parent="palm_link" child="proximal_phalange_link_2"/>
+
+  <xacro:hand_segment name="middle_phalange_link_2" len="${middle_phalange_length}"/>
+  <xacro:hand_joint name="middle_phalange_2" parent="proximal_phalange_link_2" child="middle_phalange_link_2"/>
+
+  <xacro:hand_segment name="distal_phalange_link_2" len="${distal_phalange_length}"/>
+  <xacro:hand_joint name="distal_phalange_2" parent="middle_phalange_link_2" child="distal_phalange_link_2"/>
+
+  <!-- Ring finger -->
+  <xacro:hand_segment name="proximal_phalange_link_3" len="${proximal_phalange_length}"/>
+  <xacro:hand_joint name="proximal_phalange_3" parent="palm_link" child="proximal_phalange_link_3"/>
+
+  <xacro:hand_segment name="middle_phalange_link_3" len="${middle_phalange_length}"/>
+  <xacro:hand_joint name="middle_phalange_3" parent="proximal_phalange_link_3" child="middle_phalange_link_3"/>
+
+  <xacro:hand_segment name="distal_phalange_link_3" len="${distal_phalange_length}"/>
+  <xacro:hand_joint name="distal_phalange_3" parent="middle_phalange_link_3" child="distal_phalange_link_3"/>
+
+  <!-- Pinky finger -->
+  <xacro:hand_segment name="proximal_phalange_link_4" len="${proximal_phalange_length}"/>
+  <xacro:hand_joint name="proximal_phalange_4" parent="palm_link" child="proximal_phalange_link_4"/>
+
+  <xacro:hand_segment name="middle_phalange_link_4" len="${middle_phalange_length}"/>
+  <xacro:hand_joint name="middle_phalange_4" parent="proximal_phalange_link_4" child="middle_phalange_link_4"/>
+
+  <xacro:hand_segment name="distal_phalange_link_4" len="${distal_phalange_length}"/>
+  <xacro:hand_joint name="distal_phalange_4" parent="middle_phalange_link_4" child="distal_phalange_link_4"/>
+
+
+  <!-- Gazebo plugin for ROS Control -->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/</robotNamespace>
+    </plugin>
+  </gazebo>
+</robot>

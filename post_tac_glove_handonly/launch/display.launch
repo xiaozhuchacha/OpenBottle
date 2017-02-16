@@ -1,0 +1,17 @@
+<launch>
+
+  <arg name="model" default="$(find post_tac_glove_handonly)/urdf/open_bottle.urdf.xacro"/>
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find post_tac_glove_handonly)/rviz/urdf.rviz" />
+
+  <!-- <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" /> -->
+  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+  <param name="use_gui" value="$(arg gui)"/>
+
+
+  <node name="post_tac_glove_handonly" pkg="post_tac_glove_handonly" type="post_tac_glove_handonly" args="/home/xuxie/hand_only_with_tf_labels_reconstructed.csv false" required="true" output="screen" />
+  <!-- node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" / -->
+  <!-- node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" / -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+</launch>

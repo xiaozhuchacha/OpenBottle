@@ -1,0 +1,10 @@
+To run the package:
+in ./launch/display.launch:
+
+three arguments:
+1) directory that contains corrected .csv file
+2) boolean value if save the dumped data
+3) time resolution to publish the transforms
+
+command:
+roslaunch post_tac_glove display.launch
