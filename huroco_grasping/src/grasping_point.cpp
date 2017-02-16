@@ -80,9 +80,9 @@ void Grasp::normalizeVect(Vect &norm_vect)
 		double end_y = obj_endpoint.getY();
 		double end_z = obj_endpoint.getZ();
 
-		double x = (upper_forearm_x + lower_forearm_x + end_x)/2;
-		double y = (upper_forearm_y + lower_forearm_y + end_y)/2;
-		double z = (upper_forearm_z + lower_forearm_z + end_z)/2;
+		double x = (upper_forearm_x + lower_forearm_x + end_x)/3;
+		double y = (upper_forearm_y + lower_forearm_y + end_y)/3;
+		double z = (upper_forearm_z + lower_forearm_z + end_z)/3;
 
 		double length = sqrt(pow(x,2) + pow(y,2) + pow(z, 2));
 
