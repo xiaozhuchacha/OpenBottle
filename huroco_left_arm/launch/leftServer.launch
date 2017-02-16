@@ -1,0 +1,7 @@
+<launch>
+	<include file="$(find baxter_moveit_config)/launch/baxter_grippers.launch" />
+
+	<node name="left_arm_server" pkg="huroco_left_arm" type="left_arm_server" respawn="false" output="screen">
+	</node>
+
+</launch>

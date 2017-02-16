@@ -1,0 +1,4 @@
+<launch>
+        <node name="huroco_grasping" pkg="huroco_grasping" type="huroco_grasping" respawn="false" output="screen">
+        </node>
+</launch>
