@@ -3,7 +3,7 @@ close all; clear all; clc;
 data_dir = '~/Dropbox/Documents/VCLA/SIMPLEX/datacollection/11_29_data_local/proc/3_bottle69_open_bottle_palm_2_tf_convert_merged_successes_proc/';
 data_file = 'hand_only_with_tf_labels_data';
 
-data = load(strcat(strcat(data_dir, data_file), '.mat');
+data = load(strcat(strcat(data_dir, data_file), '.mat'));
 data = data.data;
 
 num_samples = size(data, 1);
