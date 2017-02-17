@@ -85,18 +85,19 @@ int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoi
 	tf::Transform tf(reflex_q, reflex_t);
 
 
-	geometry_msgs::Pose point = waypoints[0];
+	std::vector<geometry_msgs::Pose>::iterator iter;
+	for(iter = waypoints.begin(); iter != waypoints.end(); iter++) {
+		tf::Quaternion reflex_qt(iter->orientation.x, iter->orientation.y, iter->orientation.z, iter->orientation.w);
+		tf::Vector3 reflex_tt(iter->position.x, iter->position.y, iter->position.z);
 
-	tf::Quaternion reflex_qt(point.orientation.x, point.orientation.y, point.orientation.z, point.orientation.w);
-	tf::Vector3 reflex_tt(point.position.x, point.position.y, point.position.z);
+		tf::Transform tf_t(reflex_qt, reflex_tt);
 
-	tf::Transform tf_t(reflex_qt, reflex_tt);
+		tf::Vector3 right_eef = tf_t * reflex_t;
 
-	tf::Vector3 right_eef = tf_t * reflex_t;
-
-	waypoints[0].position.x = right_eef.getX();
-	waypoints[0].position.y = right_eef.getY();
-	waypoints[0].position.z = right_eef.getZ();
+		iter->position.x = right_eef.getX();
+		iter->position.y = right_eef.getY();
+		iter->position.z = right_eef.getZ();	
+	}
 
 
 	cartesian_status = tryComputingCartesian(move_group_, trajectory, step, waypoints);
