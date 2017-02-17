@@ -1,0 +1,3 @@
+float64 radius
+---
+geometry_msgs/Pose grasping_pose
