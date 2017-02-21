@@ -1,5 +1,6 @@
 import sys
 import os
+import operator
 
 
 def main():
@@ -32,6 +33,7 @@ def parse_mapping(file):
 def parse_annotation(file, annotation_mapping):
     with open(file) as f:
         content = f.readlines()
+        print "Opened file: %s" % f.name
 
     sentence = []
     for line in content:
@@ -54,8 +56,15 @@ def write_sentences(output_dir, annotation_mapping, sentences):
     with open(output_dir + "/sentences.txt", 'w') as file:
         # write the annotation types
         file.write(str(len(annotation_mapping)) + '\n')
+
+        sorted_mapping = len(annotation_mapping)*[None]
+
+        # build sorted reverse of str->int action dictionary
         for identifier in annotation_mapping:
-            file.write(str(annotation_mapping[identifier] - 1) + '\n')
+            sorted_mapping[annotation_mapping[identifier]-1] = identifier
+
+        for i in range(0, len(sorted_mapping)):
+            file.write(str(i) + '\n')
 
         file.write('\n')
         # write each sentence
