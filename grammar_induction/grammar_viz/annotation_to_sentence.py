@@ -11,7 +11,8 @@ def main():
 
     sentences = []
     for file in os.listdir(input_dir):
-        if file.endswith(".txt") and os.path.basename(file) != "sentences.txt":
+        # only include text files, ignore sentence and grammar files
+        if file.endswith(".txt") and os.path.basename(file) != "sentences.txt" and os.path.basename(file) != "grammar.txt":
             sentences.append(parse_annotation(input_dir + "/" + file, annotation_mapping))
 
     write_sentences(input_dir, annotation_mapping, sentences)
@@ -44,7 +45,7 @@ def parse_annotation(file, annotation_mapping):
         identifier = line.split(',')[0]
 
         if identifier not in annotation_mapping:
-            print("Identifier %s not found in mapping" % identifier)
+            print("Identifier %s in file %s not found in mapping" % (identifier, file))
             sys.exit(1)
 
         sentence.append(annotation_mapping[identifier])

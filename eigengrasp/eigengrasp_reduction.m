@@ -60,5 +60,5 @@ reconstructed_err = data - reconstructed_data;
 
 
 % save reconstructed data to mat file
-reconstruction_file = strcat(strcat(data_dir, data_file), '_reconstructed.mat')
+reconstruction_file = strcat(strcat(data_dir, data_file), '_reconstructed.mat');
 save(reconstruction_file, 'reconstructed_data');
