@@ -1,6 +1,7 @@
 import string
 import numpy as np
 import os
+import sys
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import scipy.io
@@ -13,8 +14,8 @@ class TF:
 
 
 def main():
-    data_dir = os.path.expanduser('~') +'/Dropbox/Documents/VCLA/SIMPLEX/datacollection/11_29_data_local/proc/3_bottle69_open_bottle_palm_2_tf_convert_merged_successes_proc/'
-    data_file = 'hand_only_with_tf_labels'
+    data_file = sys.argv[1]
+    data_dir = os.path.abspath(os.path.join(data_file, os.pardir))
 
     # csv_to_mat(data_dir, data_file)
     mat_to_csv(data_dir, data_file)

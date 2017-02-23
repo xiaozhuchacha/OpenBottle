@@ -54,10 +54,15 @@ def main():
                 children_and = line_and.split(' ]')[0].split('\t')[1][1:].split(' ')
                 f_out.write(root_and + ' [shape=doublecircle, fillcolor=palegreen3, style=filled, color=blue, ranksep=0.5, nodesep=0.5]\n')
                 for child_and in children_and:
-                    # print(root_and + ' -> ' + child_and)
+                    print(root_and + ' -> ' + child_and)
                     fixed_child_and = child_and
+                    if root_and == '31':
+                        print("hey")
                     if child_and in single_ors:
                         fixed_child_and = single_ors[child_and]
+                    if int(child_and) in range(0, len(sorted_annotations)):
+                        fixed_child_and = sorted_annotations[int(child_and)]
+                    print(root_and + ' -> ' + fixed_child_and)
                     f_out.write(root_and + ' -> ' + fixed_child_and + ' [penwidth=3, weight=3]\n')
 
             for i in range(idx_or, idx_or + num_or):
