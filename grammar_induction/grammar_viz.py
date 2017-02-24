@@ -52,7 +52,7 @@ def main():
                 line_and = lines[i]
                 root_and = line_and.split('\t')[0]
                 children_and = line_and.split(' ]')[0].split('\t')[1][1:].split(' ')
-                f_out.write(root_and + ' [shape=doublecircle, fillcolor=palegreen3, style=filled, color=blue, ranksep=0.5, nodesep=0.5]\n')
+                f_out.write(root_and + ' [shape=doublecircle, fillcolor=chartreuse1, style=filled, color=blue, ranksep=0.5, nodesep=0.5]\n')
                 for child_and in children_and:
                     print(root_and + ' -> ' + child_and)
                     fixed_child_and = child_and
@@ -70,7 +70,7 @@ def main():
                 root_or = line_or.split('\t')[0]
                 if root_or in single_ors:
                     continue
-                f_out.write(root_or + ' [shape=circle, fillcolor=palegreen1, style=filled, color=blue, ranksep=0.5, nodesep=0.5]\n')
+                f_out.write(root_or + ' [shape=circle, fillcolor=deepskyblue, style=filled, color=blue, ranksep=0.5, nodesep=0.5]\n')
                 children_or = line_or.split(' ]')[0].split('\t')[1][1:].split(' ')
                 weights_or = line_or.split(' ]')[1][2:].split(' ')
                 sum_weights = 0
