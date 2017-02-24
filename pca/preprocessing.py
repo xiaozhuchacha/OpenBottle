@@ -13,75 +13,20 @@ class TF:
         self.child_frame_id = cf_id
 
 
+# loads all CSVs in a directory and stores them as a .mat
 def main():
-    data_file = sys.argv[1]
-    data_dir = os.path.abspath(os.path.join(data_file, os.pardir))
+    data_dir = sys.argv[1]
+    for data_file in os.listdir(data_dir):
+        csv_to_mat(data_dir, data_file)
+    # mat_to_csv(data_dir, data_file)
 
-    # csv_to_mat(data_dir, data_file)
-    mat_to_csv(data_dir, data_file)
-
-    print "Loaded array with %i samples and %i features" % data.shape
     return
 
 
-def run_pca(data):
-
-    normalized_data, column_maxs, column_mins = normalize(data)
-
-    pca = PCA()
-    pca.fit(normalized_data)
-
-    plt.figure(1, figsize=(4, 3))
-    plt.clf()
-    plt.axes([.2, .2, .7, .7])
-    plt.plot(pca.explained_variance_, linewidth=2)
-    plt.axis('tight')
-    plt.xlabel('n_components')
-    plt.ylabel('explained_variance')
-
-    reconstruction = np.zeros(data.shape, dtype='f8')
-    errors = np.zeros(data.shape, dtype='f8')
-    mean_pose = pca.mean_
-
-    eigenvalues = pca.explained_variance_
-    eigenvectors = pca.components_
-    num_components = 10 # number of eigenvectors to use
-    for i in range(0, data.shape[0]):
-        reconstruction[i, :] = mean_pose
-        for j in range(0, num_components):
-            reconstruction[i, :] += np.dot(data[i, :], eigenvectors[j, :]) * eigenvalues[j]
-            # undo normalization
-            reconstruction[i, :] *= (column_maxs - column_mins)
-            reconstruction[i, :] += column_mins
-            print "iter: %, err_sum: %f" % (j, )
-        errors[i, :] = (reconstruction[i, :] - data[i, :])**2
-
-    write_csv(data_dir + 'reconstructed.csv', reconstruction, tf_ordering, time_sec, time_nsec, image_id)
-
-    plt.show()
-
-
-
-def normalize(data):
-    column_maxs = np.amax(data, axis=0)
-    column_mins = np.amin(data, axis=0)
-    for i in range(0, column_maxs.shape[0]):
-        # prevent dividing by 0 when we normalize
-        if column_maxs[i] == column_mins[i] :
-            column_maxs[i] = 1
-            column_mins[i] = 0
-
-    # normalize data
-    normalized_data = np.zeros(data.shape)
-    for i in range(0, data.shape[0]):
-        normalized_data[i, :] = (data[i, :] - column_mins) / (column_maxs - column_mins)
-    return normalized_data, column_maxs, column_mins
-
-
 def csv_to_mat(data_dir, data_file):
-    print "Loading from file: " + data_dir + data_file + '.csv'
+    print "Loading from file: " + data_dir + "/" + data_file
 
-    data, time_sec, time_nsec, image_id, tf_ordering = load_csv(data_dir + data_file + '.csv')
+    data, time_sec, time_nsec, image_id, tf_ordering = load_csv(data_dir + "/" + data_file)
 
     times = np.vstack((time_sec, time_nsec))
     times = np.vstack((times, image_id))
@@ -102,7 +47,6 @@ def mat_to_csv(data_dir, data_base):
 
     write_csv(data_dir + data_base + '_reconstructed.csv', data['reconstructed_data'], tf_ordering, time_sec,
               time_nsec, image_id)
-
 
 
 # loads a CSV into a numpy matrix, ignores any tf with strings in ignored_children as their child_frame_id
@@ -126,9 +70,9 @@ def load_csv(file):
     j = 0
     tf_ordering = [] # stores array of tf's in order of the original file
     # first 3 entries are time_s, time_ns, image_id
-    time_sec = np.array(loaded[:, 0], dtype='|S16')
-    time_nsec = np.array(loaded[:, 1], dtype='|S16')
-    image_id = np.array(loaded[:, 2], dtype='|S16')
+    time_sec = np.array(loaded[:, 0], dtype=int)
+    time_nsec = np.array(loaded[:, 1], dtype=int)
+    image_id = np.array(loaded[:, 2], dtype=int)
     i = 3
     data_idx = 0
     while i < loaded.shape[1]:
@@ -159,9 +103,9 @@ def check_entry(loaded, col, tf_ordering):
 
 
 def write_mat(dir, fname, data, times, tfs):
-    scipy.io.savemat(dir + fname + '_data.mat', mdict={'data': data})
-    scipy.io.savemat(dir + fname + '_times.mat', mdict={'times': times})
-    scipy.io.savemat(dir + fname + '_tf_order.mat', mdict={'tfs': tfs})
+    scipy.io.savemat(dir + "/" + fname + '_data.mat', mdict={'data': data})
+    scipy.io.savemat(dir + "/" + fname + '_times.mat', mdict={'times': times})
+    scipy.io.savemat(dir + "/" + fname + '_tf_order.mat', mdict={'tfs': tfs})
 
 
 def load_mat(dir, datafname):
@@ -206,5 +150,64 @@ def is_float_cell(cell):
     return len(cell) > 0 and (cell[0].isdigit() or cell[0] == '-')
 
 
+# Broken, do not use, export to matlab
+def run_pca(data):
+
+    normalized_data, column_maxs, column_mins = normalize(data)
+
+    pca = PCA()
+    pca.fit(normalized_data)
+
+    plt.figure(1, figsize=(4, 3))
+    plt.clf()
+    plt.axes([.2, .2, .7, .7])
+    plt.plot(pca.explained_variance_, linewidth=2)
+    plt.axis('tight')
+    plt.xlabel('n_components')
+    plt.ylabel('explained_variance')
+
+    reconstruction = np.zeros(data.shape, dtype='f8')
+    errors = np.zeros(data.shape, dtype='f8')
+    mean_pose = pca.mean_
+
+    eigenvalues = pca.explained_variance_
+    eigenvectors = pca.components_
+    num_components = 10 # number of eigenvectors to use
+    for i in range(0, data.shape[0]):
+        reconstruction[i, :] = mean_pose
+        for j in range(0, num_components):
+            reconstruction[i, :] += np.dot(data[i, :], eigenvectors[j, :]) * eigenvalues[j]
+            # undo normalization
+            reconstruction[i, :] *= (column_maxs - column_mins)
+            reconstruction[i, :] += column_mins
+            print "iter: %, err_sum: %f" % (j, )
+        errors[i, :] = (reconstruction[i, :] - data[i, :])**2
+
+    write_csv(data_dir + 'reconstructed.csv', reconstruction, tf_ordering, time_sec, time_nsec, image_id)
+
+    plt.show()
+
+
+def normalize(data):
+    column_maxs = np.amax(data, axis=0)
+    column_mins = np.amin(data, axis=0)
+    for i in range(0, column_maxs.shape[0]):
+        # prevent dividing by 0 when we normalize
+        if column_maxs[i] == column_mins[i] :
+            column_maxs[i] = 1
+            column_mins[i] = 0
+
+    # normalize data
+    normalized_data = np.zeros(data.shape)
+    for i in range(0, data.shape[0]):
+        normalized_data[i, :] = (data[i, :] - column_mins) / (column_maxs - column_mins)
+    return normalized_data, column_maxs, column_mins
+
+
 if __name__ == "__main__":
+
+    # times = scipy.io.loadmat('/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca'
+    #                  '/hand_only_csvs/bottle64_palm/bottle64_open_palm_success_corrected_order8-12-13_times'
+    #                          '.mat')
+
     main()
