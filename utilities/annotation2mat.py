@@ -25,7 +25,10 @@ def parser_annotation(root_dir):
         assert(len(file_index1) == 1)
         assert(0 <= len(file_index2) <= 1)
         assert(len(trial_index) == 1)
-        file_index = str(file_index1) + '.' + str(file_index2)
+        if len(file_index2) == 1:
+            file_index = [int(file_index1[0]), int(file_index2[0])]
+        else:
+            file_index = [int(file_index1[0]), 0]
 
         # load file
         lines = [line.rstrip('\n') for line in open(file)]
@@ -43,7 +46,7 @@ def parser_annotation(root_dir):
                     start_time_msec = end_time_msec
                     continue
 
-                file_index_all.append(file_index.rstrip('.'))
+                file_index_all.append(file_index)
                 trial_index_all.append(trial_index)
                 action_all.append(action)
                 start_time_sec_all.append(start_time_sec)
