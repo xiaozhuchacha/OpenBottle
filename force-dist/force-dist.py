@@ -1,42 +1,104 @@
+
 import sys
 import scipy.io
 import numpy as np
 import pickle
-from collections import Counter
+import matplotlib.pyplot as plt
+import math
 
 output_dir = '/home/mark/Desktop'
 
-class Window:
-    def __init__(self, window_len, window_width):
-        self.content = np.zeros((window_len, window_width))
-    def __init__(self, content):
-        self.content = content
 
-
-class ActionAnnotation:
+class ActionContent:
     def __init__(self, name):
         self.name = name
-        self.start_times = []
-        self.start_idxs = []
-        self.end_times = []
-        self.end_idxs = []
-        self.pose_prewindows = []
-        self.pose_postwindows = []
-        self.force_prewindows = []
-        self.force_postwindows = []
-        self.next_actions = []
+        self.times = []
+        self.time_idx = []
+        self.palm_forces = []
+        self.palm_avgs = []
+        self.finger_forces = []
+        self.finger_avgs = []
+        self.thumb_forces = []
+        self.thumb_avgs = []
 
-    def add_entry(self, start_time, start_idx, end_time, end_idx, pose_prewindow, pose_postwindow, force_prewindow,
-                  force_postwindow, next_action):
-        self.start_times.append(start_time)
-        self.start_idxs.append(start_idx)
-        self.end_times.append(end_time)
-        self.end_idxs.append(end_idx)
-        self.pose_prewindows.append(pose_prewindow)
-        self.pose_postwindows.append(pose_postwindow)
-        self.force_prewindows.append(force_prewindow)
-        self.force_postwindows.append(force_postwindow)
-        self.next_actions.append(next_action)
+    def add_entry(self, time, time_idx, palm_force, finger_force, thumb_force):
+        self.times.append(time)
+        self.time_idx.append(time_idx)
+        self.palm_forces.append(palm_force)
+        self.finger_forces.append(finger_force)
+        self.thumb_forces.append(thumb_force)
+
+    def compute_histograms(self):
+        for i in range(0, len(self.times)):
+            self.palm_avgs.append(np.mean(self.palm_forces[i]))
+            self.finger_avgs.append(np.mean(self.finger_forces[i]))
+            self.thumb_avgs.append(np.mean(self.thumb_forces[i]))
+
+        self.palm_avgs = np.nan_to_num(self.palm_avgs)
+        self.finger_avgs = np.nan_to_num(self.finger_avgs)
+        self.thumb_avgs = np.nan_to_num(self.thumb_avgs)
+
+        plot = True
+        bin_num = 20
+        # stack the potential force sources and average column wise (avg across trials)
+        total = np.vstack((self.palm_avgs, self.finger_avgs, self.thumb_avgs))
+        total = np.mean(total, axis=0)
+        # total = reject_outliers(total, m=4)
+        norm_total = total / max(total)
+        self.total_histogram = np.histogram(total, bins=bin_num, range=(0, max(total)))
+        self.norm_total_histogram = np.histogram(norm_total, bins=bin_num, range=(0, max(norm_total)))
+        if plot:
+            plt.figure(2)
+            plt.hist(total, bins=bin_num, range=(0, max(total)))
+            plt.title(self.name + " combined histogram")
+            plt.xlabel("Force")
+            plt.ylabel("Frequency")
+            plt.savefig('/home/mark/Desktop/' + self.name + '_total.png')
+            plt.close()
+
+            plt.figure(3)
+            plt.hist(norm_total, bins=bin_num, range=(0, max(norm_total)))
+            plt.title(self.name + " combined normalized histogram")
+            plt.xlabel("Force")
+            plt.ylabel("Frequency")
+            plt.savefig('/home/mark/Desktop/' + self.name + '_normalized_total.png')
+            plt.close()
+
+
+        # if self.name == 'pinch':
+        #     stack the potential force sources and average column wise (avg across trials)
+            # total = np.vstack((self.finger_avgs, self.thumb_avgs))
+            # total = np.mean(total, axis=0)
+            # self.histogram = np.histogram(total, bins=bin_num, range=(0, max(total)))
+            # if plot:
+            #     plt.figure(2)
+            #     plt.hist(total, bins=bin_num, range=(0, max(total)))
+            #     plt.title(self.name + " combined histogram")
+            #     plt.xlabel("Force")
+            #     plt.ylabel("Frequency")
+            #     plt.savefig('/home/mark/Desktop/' + self.name + '_total.png')
+            #     plt.close()
+
+        if plot:
+            plt.figure(1)
+            bins = np.linspace(min([min(self.palm_avgs), min(self.finger_avgs), min(self.thumb_avgs)]),
+                               max([max(self.palm_avgs), max(self.finger_avgs), max(self.thumb_avgs)]),
+                               bin_num)
+            print self.name
+            plt.hist(self.palm_avgs, bins=bins, alpha=0.5, label="palm")
+            plt.hist(self.finger_avgs, bins=bins, alpha=0.5, label="finger")
+            plt.hist(self.thumb_avgs, bins=bins, alpha=0.5, label="thumb")
+            plt.title(self.name + " histogram")
+            plt.xlabel("Force")
+            plt.ylabel("Frequency")
+            plt.legend(loc='upper right')
+            plt.savefig('/home/mark/Desktop/' + self.name + '_divided_hist.png')
+            plt.close()
+
+    def sample(self):
+        prob = self.total_histogram[0].astype(float) / sum(self.total_histogram[0])
+        vals = self.total_histogram[1][:len(self.total_histogram[1])-1]
+        return np.random.choice(vals, p=prob)
 
 
 class TrialContent:
@@ -61,8 +123,6 @@ def main():
 
     input_force_mat = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions' \
                     '/hand_only_csvs/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_forces.mat'
-    input_pose_mat = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions' \
-                    '/hand_only_csvs/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_poses.mat'
     input_times = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions' \
                   '/hand_only_csvs' \
                 '/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_times.mat'
@@ -75,7 +135,6 @@ def main():
                                        '/glovedata/annotations/annotation_mapping.txt')
 
     forces = scipy.io.loadmat(input_force_mat)['forces']
-    poses = scipy.io.loadmat(input_pose_mat)['poses']
     times = scipy.io.loadmat(input_times)['times']
     labels = scipy.io.loadmat(input_labels)['label']
     annotations = scipy.io.loadmat(input_annotation_mat)
@@ -90,11 +149,23 @@ def main():
 
     annotation_dict = build_annotation_dict(annotations)
 
-    fill_annotations(annotation_dict, annotations, forces, poses, times, labels, annotation_mapping)
+    fill_annotations(annotation_dict, annotations, forces, times, labels)
 
-    dump_annotations(annotation_dict)
+    for annotation in annotation_dict:
+        annotation_dict[annotation].compute_histograms()
+
+    # dump_annotations(annotation_dict)
 
     print "All done!"
+
+
+# MAD with IQR outlier rejection
+# https://stackoverflow.com/questions/11686720/is-there-a-numpy-builtin-to-reject-outliers-from-a-list
+def reject_outliers(data, m = 2.):
+    d = np.abs(data - np.median(data))
+    mdev = np.median(d)
+    s = d/mdev if mdev else 0.
+    return data[s<m]
 
 
 # create the annotation mapping between
@@ -117,20 +188,18 @@ def build_annotation_dict(annotations):
 
     for action_label in unique_action_labels:
         action_label = action_label.strip()
-        annotation_dict[action_label] = ActionAnnotation(action_label)
+        annotation_dict[action_label] = ActionContent(action_label)
 
     return annotation_dict
 
 
-def fill_annotations(annotation_dict, annotations, forces, poses, times, labels, annotation_mapping):
+def fill_annotations(annotation_dict, annotations, forces, times, labels):
     action_arr = annotations['action']
     start_time_sec = annotations['start_time_sec']
     start_time_nsec = annotations['start_time_msec']
     end_time_sec = annotations['end_time_sec']
     end_time_nsec = annotations['end_time_msec']
     annoation_labels = annotations['file_index']
-
-    window_size = 100
 
     trials = dict()
     load = True
@@ -143,45 +212,34 @@ def fill_annotations(annotation_dict, annotations, forces, poses, times, labels,
                                                                                            labels)
         pickle.dump(trials, open('/home/mark/Desktop/trials.pkl', 'wb'))
 
+
     for idx in range(0, len(action_arr)):
-        cur_label = annoation_labels[idx]
-        next_action_idx = -1
-        if action_arr[idx] != 'pull' and idx < len(action_arr)-1:
-            next_action_idx = annotation_mapping[action_arr[idx+1]]
+        action_name = action_arr[idx]
         start_sec = start_time_sec[idx]
         start_nsec = start_time_nsec[idx]
         end_sec = end_time_sec[idx]
         end_nsec = end_time_nsec[idx]
 
-        cur_trial = trials[str(cur_label[0]) + '.' + str(cur_label[1])]
-
         # get index of the start and end time
-        start_time_idx = find_time_idx(cur_trial.times, start_sec, start_nsec)
-        end_time_idx = find_time_idx(cur_trial.times, end_sec, end_nsec)
+        start_idx = find_time_idx(times, start_sec, start_nsec)
+        end_idx = find_time_idx(times, end_sec, end_nsec)
 
-        # ignore and warn about times that are out of range
-        if start_time_idx == -1:
-            print("Out of range start time at %i.%i" % (start_sec, start_nsec))
-        if end_time_idx == -1:
-            print("Out of range end time at %i.%i" % (end_sec, end_nsec))
-        if end_time_idx == -1 or start_time_idx == -1:
-            continue
+        time = times[start_idx:end_idx+1, :]
+        time_idx = [i for i in range(start_idx, end_idx+1)]
 
-        start_time = cur_trial.times[start_time_idx]
-        end_time = cur_trial.times[end_time_idx]
-        # print("Actual start: %i.%i Computed start: %i.%i" % (start_sec, start_nsec, start_time[0], start_time[1]))
-        # print("Actual end: %i.%i Computed end: %i.%i" % (end_sec, end_nsec, end_time[0], end_time[1]))
+        palm_force, finger_force, thumb_force = extract_forces(start_idx, end_idx+1, forces)
 
-        force_prewindow = build_window(start_time_idx, cur_trial.forces, window_size)
-        force_postwindow = build_window(end_time_idx-window_size, cur_trial.forces, window_size)
-        pose_prewindow = build_window(start_time_idx, cur_trial.poses, window_size)
-        pose_postwindow = build_window(end_time_idx-window_size, cur_trial.poses, window_size)
-
-        annotation_dict[action_arr[idx]].add_entry(start_time, start_time_idx, end_time, end_time_idx,
-                                                   pose_prewindow, pose_postwindow, force_prewindow, force_postwindow,
-                                                   next_action_idx)
+        annotation_dict[action_arr[idx]].add_entry(time, time_idx, palm_force, finger_force, thumb_force)
 
     return annotation_dict
+
+
+# extracts the palm forces, finger force, and thumb force separately
+def extract_forces(start_idx, end_idx, forces):
+    palm_forces = forces[start_idx:end_idx, 10:26]
+    finger_forces = forces[start_idx:end_idx, 2:10]
+    thumb_forces = forces[start_idx:end_idx, 0:2]
+    return palm_forces, finger_forces, thumb_forces
 
 
 def find_time_idx(times, time_sec, time_nsec):
@@ -251,11 +309,6 @@ def determine_closest(nsec, time_nsec, cur_sec_idx, prev_sec_idx):
         return cur_sec_idx
     else:
         return prev_sec_idx
-
-
-# builds window by row
-def build_window(idx, data, window_size):
-    return data[idx:(idx + window_size), :]
 
 
 def dump_annotations(annotation_dict):

@@ -3,6 +3,7 @@ import scipy.io
 import numpy as np
 import pickle
 from collections import Counter
+from decimal import *
 
 output_dir = '/home/mark/Desktop'
 
@@ -16,27 +17,27 @@ class Window:
 class ActionAnnotation:
     def __init__(self, name):
         self.name = name
-        self.start_times = []
-        self.start_idxs = []
-        self.end_times = []
-        self.end_idxs = []
-        self.pose_prewindows = []
-        self.pose_postwindows = []
-        self.force_prewindows = []
-        self.force_postwindows = []
-        self.next_actions = []
+        self.prewindow_times = []
+        self.sample_times = []
+        self.postwindow_times = []
+        self.pose_prewindows = []   # precondition window
+        self.pose_samples = []      # samples in between pre and post condition
+        self.pose_postwindows = []  # post condition window
+        self.force_prewindows = []  # precondition window
+        self.force_samples = []     # samples in between pre and post condition
+        self.force_postwindows = [] # post condition window\
 
-    def add_entry(self, start_time, start_idx, end_time, end_idx, pose_prewindow, pose_postwindow, force_prewindow,
-                  force_postwindow, next_action):
-        self.start_times.append(start_time)
-        self.start_idxs.append(start_idx)
-        self.end_times.append(end_time)
-        self.end_idxs.append(end_idx)
+    def add_entry(self, prewindow_time, sample_time, postwindow_time, pose_prewindow, pose_sample, pose_postwindow,
+                  force_prewindow, force_sample, force_postwindow):
+        self.prewindow_times.append(prewindow_time)
+        self.sample_times.append(sample_time)
+        self.postwindow_times.append(postwindow_time)
         self.pose_prewindows.append(pose_prewindow)
+        self.pose_samples.append(pose_sample)
         self.pose_postwindows.append(pose_postwindow)
         self.force_prewindows.append(force_prewindow)
+        self.force_samples.append(force_sample)
         self.force_postwindows.append(force_postwindow)
-        self.next_actions.append(next_action)
 
 
 class TrialContent:
@@ -58,26 +59,43 @@ def main():
     # input_pose_mat = sys.argv[2]
     # input_times = sys.argv[3]
     # input_annotation_mat = sys.argv[4]
+    use_pca_data = False
+    sampling_rate = 10          # hertz
 
-    input_force_mat = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions' \
-                    '/hand_only_csvs/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_forces.mat'
-    input_pose_mat = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions' \
-                    '/hand_only_csvs/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_poses.mat'
-    input_times = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions' \
-                  '/hand_only_csvs' \
-                '/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_times.mat'
-    input_labels = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions/hand_only_csvs' \
-                '/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_label.mat'
+    if use_pca_data:
+        input_force_mat = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca' \
+                        '/hand_only_csvs/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_poses_pca_scores.mat'
+        input_pose_mat = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca' \
+                        '/hand_only_csvs/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_forces_pca_scores.mat'
+        input_times = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca/hand_only_csvs' \
+                    '/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_times.mat'
+        input_labels = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca/hand_only_csvs' \
+                    '/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_label.mat'
+        forces = scipy.io.loadmat(input_force_mat)['scores']
+        poses = scipy.io.loadmat(input_pose_mat)['scores']
+        times = scipy.io.loadmat(input_times)['times']
+        labels = scipy.io.loadmat(input_labels)['label']
+    else:
+        input_times_data = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca' \
+                        '/bottle_csvs/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_times_data.mat'
+        input_labels = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca' \
+                       '/bottle_csvs/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_label.mat'
+
+        times_data = scipy.io.loadmat(input_times_data)['times_data']
+        labels = scipy.io.loadmat(input_labels)['label']
+
+        # extract times, poses, and forces
+        num_forces = 26
+        times = times_data.astype(int)[:, 0:3]
+        data = times_data[:, 3:times_data.shape[1]]
+        poses = data[:, 0:(data.shape[1] - num_forces)]
+        forces = data[:, (data.shape[1] - num_forces):data.shape[1]]
+
+
     input_annotation_mat = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata' \
-                           '/annotations/all/annotation.mat'
+                          '/annotations/all/annotation.mat'
 
-    annotation_mapping = parse_mapping('/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local'
-                                       '/glovedata/annotations/annotation_mapping.txt')
 
-    forces = scipy.io.loadmat(input_force_mat)['forces']
-    poses = scipy.io.loadmat(input_pose_mat)['poses']
-    times = scipy.io.loadmat(input_times)['times']
-    labels = scipy.io.loadmat(input_labels)['label']
     annotations = scipy.io.loadmat(input_annotation_mat)
 
     # convert to ints/strings
@@ -90,24 +108,11 @@ def main():
 
     annotation_dict = build_annotation_dict(annotations)
 
-    fill_annotations(annotation_dict, annotations, forces, poses, times, labels, annotation_mapping)
+    fill_annotations(annotation_dict, annotations, forces, poses, times, labels, sampling_rate)
 
     dump_annotations(annotation_dict)
 
     print "All done!"
-
-
-# create the annotation mapping between
-def parse_mapping(file):
-    with open(file) as f:
-        content = f.readlines()
-
-    annotation_mapping = dict()
-    for mapping in content:
-        pair = mapping.split(',')
-        annotation_mapping[pair[0]] = int(pair[1])
-
-    return annotation_mapping
 
 
 def build_annotation_dict(annotations):
@@ -122,7 +127,7 @@ def build_annotation_dict(annotations):
     return annotation_dict
 
 
-def fill_annotations(annotation_dict, annotations, forces, poses, times, labels, annotation_mapping):
+def fill_annotations(annotation_dict, annotations, forces, poses, times, labels, sampling_rate):
     action_arr = annotations['action']
     start_time_sec = annotations['start_time_sec']
     start_time_nsec = annotations['start_time_msec']
@@ -130,7 +135,7 @@ def fill_annotations(annotation_dict, annotations, forces, poses, times, labels,
     end_time_nsec = annotations['end_time_msec']
     annoation_labels = annotations['file_index']
 
-    window_size = 100
+    window_len = 10
 
     trials = dict()
     load = True
@@ -145,9 +150,6 @@ def fill_annotations(annotation_dict, annotations, forces, poses, times, labels,
 
     for idx in range(0, len(action_arr)):
         cur_label = annoation_labels[idx]
-        next_action_idx = -1
-        if action_arr[idx] != 'pull' and idx < len(action_arr)-1:
-            next_action_idx = annotation_mapping[action_arr[idx+1]]
         start_sec = start_time_sec[idx]
         start_nsec = start_time_nsec[idx]
         end_sec = end_time_sec[idx]
@@ -172,14 +174,25 @@ def fill_annotations(annotation_dict, annotations, forces, poses, times, labels,
         # print("Actual start: %i.%i Computed start: %i.%i" % (start_sec, start_nsec, start_time[0], start_time[1]))
         # print("Actual end: %i.%i Computed end: %i.%i" % (end_sec, end_nsec, end_time[0], end_time[1]))
 
-        force_prewindow = build_window(start_time_idx, cur_trial.forces, window_size)
-        force_postwindow = build_window(end_time_idx-window_size, cur_trial.forces, window_size)
-        pose_prewindow = build_window(start_time_idx, cur_trial.poses, window_size)
-        pose_postwindow = build_window(end_time_idx-window_size, cur_trial.poses, window_size)
+        force_prewindow_times, force_prewindow = build_window(start_time_idx, cur_trial.forces, cur_trial.times,
+                                                              window_len)
+        force_postwindow_times, force_postwindow = build_window(end_time_idx-window_len, cur_trial.forces,
+                                                            cur_trial.times,
+                                                window_len)
+        pose_prewindow_times, pose_prewindow = build_window(start_time_idx, cur_trial.poses, cur_trial.times,
+                                                           window_len)
+        pose_postwindow_times, pose_postwindow = build_window(end_time_idx-window_len, cur_trial.poses,
+                                                             cur_trial.times, window_len)
 
-        annotation_dict[action_arr[idx]].add_entry(start_time, start_time_idx, end_time, end_time_idx,
-                                                   pose_prewindow, pose_postwindow, force_prewindow, force_postwindow,
-                                                   next_action_idx)
+        # sample in between windows
+        pose_sample_times, pose_samples = build_sample(start_time_idx+window_len, end_time_idx-window_len,
+                                                        cur_trial.poses, cur_trial.times, sampling_rate)
+        force_sample_times, force_samples = build_sample(start_time_idx+window_len, end_time_idx-window_len,
+                                                          cur_trial.forces, cur_trial.times, sampling_rate)
+
+        annotation_dict[action_arr[idx]].add_entry(pose_prewindow_times, pose_sample_times, pose_postwindow_times,
+                                                   pose_prewindow, pose_samples, pose_postwindow, force_prewindow,
+                                                   force_samples, force_postwindow)
 
     return annotation_dict
 
@@ -247,15 +260,50 @@ def determine_closest(nsec, time_nsec, cur_sec_idx, prev_sec_idx):
     ns = 1e9 # nanosecond
     # distance to cut time = cur_time_ns - target_time_nsec
     # distance to prev time = ns - prev_time_ns + tart_time_nsec
-    if nsec[cur_sec_idx] - time_nsec < (ns - nsec[prev_sec_idx] + 05):
+    if nsec[cur_sec_idx] - time_nsec < (ns - nsec[prev_sec_idx] + time_nsec):
         return cur_sec_idx
     else:
         return prev_sec_idx
 
 
 # builds window by row
-def build_window(idx, data, window_size):
-    return data[idx:(idx + window_size), :]
+def build_window(idx, data, times, window_size):
+    return times[idx:(idx + window_size), :], data[idx:(idx + window_size), :]
+
+
+def build_sample(start_idx, end_idx, data, times, sampling_rate):
+    sample_times = []
+    sample_data = []
+
+    # time change between samples in seconds
+    time_delta = Decimal(float(sampling_rate)/60)
+
+    sample_sec = times[start_idx, 0]
+    sample_nsec = times[start_idx, 1]
+    sample_time = Decimal(str(sample_sec) + '.' + str(sample_nsec))
+
+    idx = start_idx
+    # sample between start idx and end idx
+    while idx < end_idx:
+        cur_sec = times[idx, 0]
+        cur_nsec = times[idx, 1]
+
+        # skip this time idx if it's a duplicate/has the same stamp
+        if sample_sec == cur_sec and sample_nsec == cur_nsec:
+            idx += 1
+            continue
+
+        cur_time = Decimal(str(cur_sec) + '.' + str(cur_nsec))
+
+        if cur_time > sample_time + time_delta:
+            sample_times.append(times[idx])
+            sample_data.append(data[idx])
+            sample_time = sample_time + time_delta
+            sample_sec = cur_sec
+            sample_nsec = cur_nsec
+        idx += 1
+
+    return sample_times, sample_data
 
 
 def dump_annotations(annotation_dict):
@@ -263,10 +311,10 @@ def dump_annotations(annotation_dict):
         anno_obj = annotation_dict[annotation]
         anno_obj_len = len(anno_obj.end_times)
         window_len = anno_obj.pose_prewindows[0].shape[0]
-        length = anno_obj_len * window_len*2
+        length = anno_obj_len * window_len
         pose_window_width = anno_obj.pose_prewindows[0].shape[1]
         force_window_width = anno_obj.force_prewindows[0].shape[1]
-        width = anno_obj.end_times[0].shape[0] + pose_window_width + force_window_width + 1
+        width = anno_obj.end_times[0].shape[0] + 2 * pose_window_width + 2 * force_window_width
         write_arr = np.zeros((length, width))
         idx = 0
         for i in range(0, anno_obj_len):
@@ -275,34 +323,31 @@ def dump_annotations(annotation_dict):
             write_arr[idx+1, 0:3] = anno_obj.end_times[i]
 
             # write pre conditions
-            window = anno_obj.pose_prewindows[i]
+            window = np.matrix(anno_obj.pose_prewindows[i])
             begin_col = 3
             end_col = 3 + pose_window_width
             write_arr[idx:idx+window_len, begin_col:end_col] = window
 
-            window = anno_obj.force_prewindows[i]
+            window = np.matrix(anno_obj.force_prewindows[i])
             begin_col = end_col
             end_col += force_window_width
             write_arr[idx:idx+window_len, begin_col:end_col] = window
 
-            # write post conditions below
-            window = anno_obj.pose_postwindows[i]
-            begin_col = 3
-            end_col = 3 + pose_window_width
-            write_arr[idx+window_len:idx+2*window_len, begin_col:end_col] = window
+            # write post conditions
+            window = np.matrix(anno_obj.pose_postwindows[i])
+            begin_col = end_col
+            end_col += pose_window_width
+            write_arr[idx:idx+window_len, begin_col:end_col] = window
 
-            window = anno_obj.force_postwindows[i]
+            window = np.matrix(anno_obj.force_postwindows[i])
             begin_col = end_col
             end_col += force_window_width
-            write_arr[idx+window_len:idx+2*window_len, begin_col:end_col] = window
+            write_arr[idx:idx+window_len, begin_col:end_col] = window
 
-            write_arr[idx, end_col] = anno_obj.next_actions[i]
-
-            idx = idx + window_len * 2  # row offset of this window
+            idx = idx + window_len  # row offset of this window
 
         scipy.io.savemat(output_dir + "/" + annotation + "_windows.mat", {'windows': write_arr, 'pose_window_width':
             pose_window_width, 'force_window_width': force_window_width, 'window_len': window_len})
-        print "Wrote mat to : %s" % str(output_dir + '/' + annotation + "_windows.mat")
 
 
 if __name__ == "__main__":
