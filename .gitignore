@@ -49,3 +49,11 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+grammar_induction/igraph/bin/
+grammar_induction/igraph/include/
+grammar_induction/igraph/lib/
+grammar_induction/igraph/local/
+grammar_induction/igraph/pip-selfcheck.json
+grammar_induction/igraph/python-igraph/
+grammar_induction/igraph/share/
