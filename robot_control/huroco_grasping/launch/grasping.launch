@@ -1,4 +1,5 @@
 <launch>
         <node name="huroco_grasping" pkg="huroco_grasping" type="huroco_grasping" respawn="false" output="screen">
+        	<rosparam command="load" file="$(find huroco_grasping)/config/bottles.yaml" />
         </node>
 </launch>

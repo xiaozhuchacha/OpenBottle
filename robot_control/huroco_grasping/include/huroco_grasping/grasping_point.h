@@ -9,8 +9,11 @@
 #include <string>
 #include <cmath>
 
+#include "huroco_right_arm/rightCartesian.h"
+#include "huroco_left_arm/leftCartesian.h"
 
 #include "huroco_grasping/graspPose.h"
+#include "huroco_grasping/graspCap.h"
 #include "baxter_core_msgs/EndpointState.h"
 
 
@@ -33,17 +36,22 @@ private:
 	ros::AsyncSpinner spinner_;
 
 	ros::ServiceServer grasping_;
+	ros::ServiceServer cap_;
 
 	ros::Subscriber robot_state_sub_;
 
 	geometry_msgs::Pose obj_pose_;
 	geometry_msgs::Pose current_pose_;
 	geometry_msgs::Pose grasping_pose_;
+	geometry_msgs::Pose lid_pose_;
 
 	tf::Transform grasping_pose_tf_;
 	tf::Transform obj_tf_;
+	tf::Transform grasped_obj_tf_;
 
 	std::vector<geometry_msgs::Pose> grasping_poses_;
+
+	std::string bottle_;
 
 	double radius_;
 	double dense_;
@@ -54,14 +62,19 @@ private:
 
 	void getRightPose(const baxter_core_msgs::EndpointState msg);
 
-	//void generateGraspingPose();
-
 	void computeGraspingPose();
+
+	void computeCapPose();
 
 	bool graspingPose(huroco_grasping::graspPose::Request &req,
 					  huroco_grasping::graspPose::Response &res);
 
+	bool graspingCap(huroco_grasping::graspCap::Request &req,
+					 huroco_grasping::graspCap::Response &res);
+
+
 	bool sub_trigger_;
+	bool tf_status_;
 };
 
 

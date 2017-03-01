@@ -1,0 +1,6 @@
+<launch>
+  <node name="action_manager" pkg="action_manager" type="action_manager" respawn="false" output="screen" >
+  	<rosparam command="load" file="$(find action_manager)/config/bottles.yaml" />
+  </node>
+
+</launch>

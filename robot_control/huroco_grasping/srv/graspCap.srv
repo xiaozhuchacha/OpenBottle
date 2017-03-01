@@ -1,0 +1,4 @@
+string bottle
+---
+geometry_msgs/Pose lid_pose
+bool status

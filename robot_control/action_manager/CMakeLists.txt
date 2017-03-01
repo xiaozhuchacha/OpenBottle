@@ -1,29 +1,33 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(huroco_grasping)
+project(action_manager)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  geometry_msgs
+  huroco_grasping
+  huroco_left_arm
+  huroco_right_arm
   roscpp
   rospy
   std_msgs
-  geometry_msgs
   std_srvs
-  message_generation
-  tf
   baxter_core_msgs
+  message_generation
+  right_gripper_receiver
 )
 
 ## System dependencies are found with CMake's conventions
 find_package(cmake_modules)
-find_package(catkin REQUIRED COMPONENTS baxter_core_msgs tf)
+find_package(catkin REQUIRED COMPONENTS baxter_core_msgs huroco_left_arm huroco_right_arm huroco_grasping right_gripper_receiver)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
 
 
-#use C++ 11
+#Use C++ 11
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -64,10 +68,9 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 ## Generate services in the 'srv' folder
 add_service_files(
    FILES
-   graspPose.srv
-   graspCap.srv
-)
-
+   execAction.srv
+   setBottle.srv 
+)   
 ## Generate actions in the 'action' folder
 # add_action_files(
 #   FILES
@@ -78,9 +81,10 @@ add_service_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
    DEPENDENCIES
-   std_msgs  # Or other packages containing msgs
+   std_msgs
    std_srvs
    baxter_core_msgs
+   geometry_msgs
 )
 
 ################################################
@@ -114,8 +118,8 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES huroco_grasping
-  CATKIN_DEPENDS roscpp rospy std_msgs std_srvs baxter_core_msgs
+#  LIBRARIES action_manager
+  CATKIN_DEPENDS geometry_msgs huroco_grasping huroco_left_arm huroco_right_arm roscpp rospy std_msgs std_srvs right_gripper_receiver
 #  DEPENDS system_lib
 )
 
@@ -132,24 +136,25 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(huroco_grasping
-#   src/${PROJECT_NAME}/huroco_grasping.cpp
+# add_library(action_manager
+#   src/${PROJECT_NAME}/action_manager.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(huroco_grasping ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(action_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(huroco_grasping src/grasping_point.cpp)
+add_executable(action_manager src/4dhoi.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(huroco_grasping ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(action_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(action_manager ${PROJECT_NAME}_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(huroco_grasping
+target_link_libraries(action_manager
    ${catkin_LIBRARIES}
 )
 
@@ -168,7 +173,7 @@ target_link_libraries(huroco_grasping
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS huroco_grasping huroco_grasping_node
+# install(TARGETS action_manager action_manager_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -193,7 +198,7 @@ target_link_libraries(huroco_grasping
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_huroco_grasping.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_action_manager.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
