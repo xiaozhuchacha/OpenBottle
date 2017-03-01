@@ -49,10 +49,3 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
-
-grammar_induction/networkx/bin/
-grammar_induction/networkx/include/
-grammar_induction/networkx/lib/
-grammar_induction/networkx/local/
-grammar_induction/networkx/pip-selfcheck.json
-grammar_induction/networkx/share/
