@@ -1,0 +1,4 @@
+
+Writes a forcetorque_left.csv to the current directory
+
+rosrun force_torque_writer force_torque_writer 
