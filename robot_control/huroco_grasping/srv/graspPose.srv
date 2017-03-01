@@ -1,3 +1,5 @@
+string bottle
 float64 radius
 ---
 geometry_msgs/Pose grasping_pose
+bool status

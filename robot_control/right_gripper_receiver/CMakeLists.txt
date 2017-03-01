@@ -1,29 +1,17 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(huroco_grasping)
+project(right_gripper_receiver)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-  geometry_msgs
-  std_srvs
-  message_generation
-  tf
-  baxter_core_msgs
+	std_srvs
+	message_generation
 )
 
 ## System dependencies are found with CMake's conventions
-find_package(cmake_modules)
-find_package(catkin REQUIRED COMPONENTS baxter_core_msgs tf)
-find_package(Boost REQUIRED COMPONENTS system)
-find_package(Eigen3 REQUIRED)
+# find_package(Boost REQUIRED COMPONENTS system)
 
-
-#use C++ 11
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -64,8 +52,8 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 ## Generate services in the 'srv' folder
 add_service_files(
    FILES
-   graspPose.srv
-   graspCap.srv
+   rightGrasp.srv
+   rightStatus.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -77,10 +65,9 @@ add_service_files(
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-   DEPENDENCIES
-   std_msgs  # Or other packages containing msgs
-   std_srvs
-   baxter_core_msgs
+  DEPENDENCIES
+#   std_msgs  # Or other packages containing msgs
+	std_srvs
 )
 
 ################################################
@@ -113,9 +100,9 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-#  LIBRARIES huroco_grasping
-  CATKIN_DEPENDS roscpp rospy std_msgs std_srvs baxter_core_msgs
+#  INCLUDE_DIRS include
+#  LIBRARIES right_gripper_receiver
+#  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
 
@@ -126,32 +113,28 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)
 
 ## Declare a C++ library
-# add_library(huroco_grasping
-#   src/${PROJECT_NAME}/huroco_grasping.cpp
+# add_library(right_gripper_receiver
+#   src/${PROJECT_NAME}/right_gripper_receiver.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(huroco_grasping ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(right_gripper_receiver ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(huroco_grasping src/grasping_point.cpp)
+# add_executable(right_gripper_receiver_node src/right_gripper_receiver_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(huroco_grasping ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(right_gripper_receiver_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(huroco_grasping
-   ${catkin_LIBRARIES}
-)
+# target_link_libraries(right_gripper_receiver_node
+#   ${catkin_LIBRARIES}
+# )
 
 #############
 ## Install ##
@@ -168,7 +151,7 @@ target_link_libraries(huroco_grasping
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS huroco_grasping huroco_grasping_node
+# install(TARGETS right_gripper_receiver right_gripper_receiver_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -193,7 +176,7 @@ target_link_libraries(huroco_grasping
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_huroco_grasping.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_right_gripper_receiver.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

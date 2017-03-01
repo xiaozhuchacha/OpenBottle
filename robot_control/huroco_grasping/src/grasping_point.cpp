@@ -1,8 +1,7 @@
 
 #include "huroco_grasping/grasping_point.h"
 
-#define PI     3.1415926
-#define MAX    100 
+#define PI 3.1415926 
 
 
 const std::string name = "/huroco_grasping";
@@ -11,7 +10,8 @@ const std::string name = "/huroco_grasping";
 Grasp::Grasp()
 		:spinner_(1)
 {
-	grasping_ = nh_.advertiseService(name+"/grasping_pose", &Grasp::graspingPose, this);
+	cap_ = nh_.advertiseService(name + "/cap_pose", &Grasp::graspingCap, this);
+	grasping_ = nh_.advertiseService(name + "/grasping_pose", &Grasp::graspingPose, this);
 
 	spinner_.start();
 }
@@ -22,11 +22,8 @@ Grasp::~Grasp()
 
 }
 
-
 void Grasp::normalizeVect(Vect &norm_vect)
 {
-	//tf::Vector3 base_endpoint(current_pose_.position.x, current_pose_.position.y, current_pose_.position.z);
-
 	tf::TransformListener listener;
 	tf::StampedTransform transform;
 	tf::StampedTransform lower_forearm_transform;
@@ -36,11 +33,12 @@ void Grasp::normalizeVect(Vect &norm_vect)
 		ros::Time t = ros::Time(0);
 
 		try {
-			listener.waitForTransform("/bottle64", "/base", t, ros::Duration(1.0));
-			listener.lookupTransform("/bottle64", "/base", t, transform);
+			listener.waitForTransform(bottle_, "/base", t, ros::Duration(1.0));
+			listener.lookupTransform(bottle_, "/base", t, transform);
 		}
 		catch(tf::TransformException ex) {
 			ROS_ERROR("%s", ex.what());
+			tf_status_ = false;
 		}
 
 		try {
@@ -49,6 +47,7 @@ void Grasp::normalizeVect(Vect &norm_vect)
 		}
 		catch(tf::TransformException ex) {
 			ROS_ERROR("%s", ex.what());
+			tf_status_ = false;
 		}
 
 		try {
@@ -57,6 +56,7 @@ void Grasp::normalizeVect(Vect &norm_vect)
 		}
 		catch(tf::TransformException ex) {
 			ROS_ERROR("%s", ex.what());
+			tf_status_ = false;
 		}
 
 
@@ -64,16 +64,18 @@ void Grasp::normalizeVect(Vect &norm_vect)
 		tf::Vector3 upper_forearm_pos = upper_forearm_transform.inverse() * tf::Vector3(0, 0, 0);
 
 
+		/* get position of upper_forearm */
 		double upper_forearm_x = upper_forearm_pos.getX();
 		double upper_forearm_y = upper_forearm_pos.getY();
 		double upper_forearm_z = upper_forearm_pos.getZ();
 
+		/* get position of lower_forearm */
 		double lower_forearm_x = lower_forearm_pos.getX();
 		double lower_forearm_y = lower_forearm_pos.getY();
 		double lower_forearm_z = lower_forearm_pos.getZ();
 
-		//printf("forearm: x:%f, y:%f, z:%f\n", forearm_x, forearm_y, forearm_z);
 
+		/* compute avg position of wrist, lower_forearm and upper forearm */
 		double x_avg = (upper_forearm_x + lower_forearm_x + current_pose_.position.x)/3;
 		double y_avg = (upper_forearm_y + lower_forearm_y + current_pose_.position.y)/3;
 		double z_avg = (upper_forearm_z + lower_forearm_z + current_pose_.position.z)/3;
@@ -86,13 +88,12 @@ void Grasp::normalizeVect(Vect &norm_vect)
 
 		printf("x:%f, y:%f, z:%f\n", end_x, end_y, end_z);
 
-		double length = sqrt(pow(end_x,2) + pow(end_y,2) + pow(end_z, 2));
+		double length = sqrt(pow(end_x,2) + pow(end_y,2) + pow(end_z,2));
 
 		norm_vect.x = end_x / length * radius_;
 		norm_vect.y = end_y / length * radius_;
 		norm_vect.z = 0;
 		
-
 		printf("norm_vect: x:%f, y:%f, z:%f\n", norm_vect.x, norm_vect.y, norm_vect.z);
 
 		break;
@@ -109,11 +110,12 @@ void Grasp::transformToBase()
 		ros::Time t = ros::Time(0);
 
 		try {
-			listener.waitForTransform("/base", "/bottle64", t, ros::Duration(1.0));
-			listener.lookupTransform("/base", "/bottle64", t, transform);
+			listener.waitForTransform("/base", bottle_, t, ros::Duration(1.0));
+			listener.lookupTransform("/base", bottle_, t, transform);
 		}
 		catch(tf::TransformException ex) {
 			ROS_ERROR("%s", ex.what());
+			tf_status_ = false;
 		}
 
 		tf::Transform pose = transform * grasping_pose_tf_;
@@ -146,53 +148,6 @@ void Grasp::getRightPose(const baxter_core_msgs::EndpointState msg)
 	current_pose_.position.z = msg.pose.position.z;
 }
 
-/*
-void Grasp::generateGraspingPose()
-{
-	double radian = 2 * PI / dense_;
-
-	double yaw = 0;
-	double pitch = 0;
-	double roll = 0;
-
-	double z = 0;
-
-	int i;
-	for(i = 0; i < dense_; i++) {
-		yaw += radian;
-		//printf("yaw:%f\n", yaw);
-		tf::Quaternion grasping_ori(tf::Vector3(0, 0, 1), yaw);
-
-		tf::Vector3 grasping_trans(radius_ * cos(yaw + PI), radius_ * sin(yaw + PI), z);
-		tf::Transform grasp_tf(grasping_ori, grasping_trans);
-
-		
-		tf::Quaternion obj_ori(0, 0, 0, 1);
-		tf::Vector3 obj_pos(0, 0, 0);
-		tf::Transform obj_tf(obj_ori, obj_pos);
-		
-		tf::Transform grasp_candidate = grasp_tf * obj_tf;
-
-		geometry_msgs::Pose grasping_pose;
-
-		grasping_pose.orientation.x = grasp_candidate.getRotation().x();
-		grasping_pose.orientation.y = grasp_candidate.getRotation().y();
-		grasping_pose.orientation.z = grasp_candidate.getRotation().z();
-		grasping_pose.orientation.w = grasp_candidate.getRotation().w();
-
-		grasping_pose.position.x = grasp_candidate.getOrigin().getX();
-		grasping_pose.position.y = grasp_candidate.getOrigin().getY();
-		grasping_pose.position.z = grasp_candidate.getOrigin().getZ();
-
-		printf("qx:%f qy:%f qz:%f qw:%f x:%f y:%f z:%f\n", grasp_candidate.getRotation().x(), grasp_candidate.getRotation().y(), grasp_candidate.getRotation().z(), grasp_candidate.getRotation().w(),\
-				grasp_candidate.getOrigin().getX(), grasp_candidate.getOrigin().getY(), grasp_candidate.getOrigin().getZ());
-
-		grasping_poses_.push_back(grasping_pose);
-	} 
-
-}
-*/
-
 
 void Grasp::computeGraspingPose()
 {
@@ -219,11 +174,11 @@ void Grasp::computeGraspingPose()
 	}
 	else if(norm_vect.x < 0 && norm_vect.y > 0) {
 		printf("2\n");
-		yaw = PI + atan(norm_vect.y/norm_vect.x);
+		yaw = 2*PI + atan(norm_vect.y/norm_vect.x);
 	}
 	else if(norm_vect.x < 0 && norm_vect.y < 0) {
 		printf("3\n");
-		yaw = PI + atan(norm_vect.y/norm_vect.x);
+		yaw = atan(norm_vect.y/norm_vect.x);
 	}
 	else if(norm_vect.x > 0 && norm_vect.y < 0) {
 		printf("4\n");
@@ -242,7 +197,7 @@ void Grasp::computeGraspingPose()
 		yaw = 1.5 * PI;
 	}
 
-	printf("yaw: %f", yaw);
+	printf("yaw: %f\n", yaw);
 
 	tf::Quaternion grasping_yaw(tf::Vector3(0, 0, 1), yaw);
 	tf::Vector3 grasping_pos(norm_vect.x, norm_vect.y, 0);
@@ -252,6 +207,7 @@ void Grasp::computeGraspingPose()
 	tf::Transform y_rotation_tf(y_rotation, tf::Vector3(0, 0, 0));
 
 	grasping_pose_tf_ =  grasping_tf * y_rotation_tf;
+	grasped_obj_tf_ = y_rotation_tf.inverse() * grasping_tf.inverse();
 
 	printf("g_tf, qx:%f, qy:%f, qz:%f, w:%f, x:%f, y:%f, z:%f\n", grasping_pose_tf_.getRotation().x(), grasping_pose_tf_.getRotation().y(), grasping_pose_tf_.getRotation().z(), grasping_pose_tf_.getRotation().w(),\
 			grasping_pose_tf_.getOrigin().getX(), grasping_pose_tf_.getOrigin().getY(), grasping_pose_tf_.getOrigin().getZ());
@@ -261,20 +217,47 @@ void Grasp::computeGraspingPose()
 bool Grasp::graspingPose(huroco_grasping::graspPose::Request &req,
 						 huroco_grasping::graspPose::Response &res)
 {
-	/*
-	tf::Quaternion obj_q(req.obj_pose.orientation.x, req.obj_pose.orientation.y, req.obj_pose.orientation.z, req.obj_pose.orientation.w);
-	tf::Vector3 obj_pos(req.obj_pose.position.x, req.obj_pose.position.y, req.obj_pose.position.z);
-
-	obj_tf_.setRotation(obj_q);
-	obj_tf_.setOrigin(obj_pos);
-	*/
 	radius_ = req.radius;
-
-	//generateGraspingPose();
+	bottle_ = req.bottle;
+	tf_status_ = true;
 
 	computeGraspingPose();
 
 	transformToBase();
+
+	/* Only for open IROS2017 */
+	/*************************************************/
+	if(tf_status_ == true) {
+		ros::ServiceClient right_arm_client = nh_.serviceClient<huroco_right_arm::rightCartesian>("/huroco_right_arm/right_cartesian");
+		ros::ServiceClient left_arm_client = nh_.serviceClient<huroco_left_arm::leftCartesian>("/huroco_left_arm/left_cartesian");
+
+		huroco_right_arm::rightCartesian right_srv;
+		huroco_left_arm::leftCartesian left_srv;
+
+		std::vector<geometry_msgs::Pose> waypoints;
+		geometry_msgs::Pose point;
+
+		point.orientation.x = grasping_pose_.orientation.x;
+		point.orientation.y = grasping_pose_.orientation.y;
+		point.orientation.z = grasping_pose_.orientation.z;
+		point.orientation.w = grasping_pose_.orientation.w;
+		point.position.x = grasping_pose_.position.x;
+		point.position.y = grasping_pose_.position.y;
+		point.position.z = grasping_pose_.position.z;
+
+		waypoints.push_back(point);
+
+		right_srv.request.waypoints = waypoints;
+
+		if(right_arm_client.call(right_srv)) {
+			ROS_INFO("status: %d", right_srv.response.status);
+
+		}	
+	}
+
+
+	/*************************************************/
+
 
 	res.grasping_pose.orientation.x = grasping_pose_.orientation.x;
 	res.grasping_pose.orientation.y = grasping_pose_.orientation.y;
@@ -284,6 +267,143 @@ bool Grasp::graspingPose(huroco_grasping::graspPose::Request &req,
 	res.grasping_pose.position.x = grasping_pose_.position.x;
 	res.grasping_pose.position.y = grasping_pose_.position.y;
 	res.grasping_pose.position.z = grasping_pose_.position.z;
+	res.status = tf_status_;
+
+	printf("%d", tf_status_);
+
+	return true;
+}
+
+
+void Grasp::computeCapPose()
+{
+	robot_state_sub_ = nh_.subscribe("/robot/limb/right/endpoint_state", 1, &Grasp::getRightPose, this);
+
+	while(1) {
+		if(sub_trigger_ == true) ros::spinOnce();
+		else {
+			robot_state_sub_.shutdown();
+			break;
+		}
+	}
+
+	std::vector<double> para;
+	nh_.getParam(name + "/" + bottle_, para);
+
+	for(int i = 0; i < para.size(); i++){
+		std::cout << i << ": " << para[i] << std::endl;
+	}
+
+	printf("h:%f, x:%f, y:%f, z:%f.\n", para[0], para[1], para[2], para[3]);
+
+	tf::Quaternion lid_q(0, 0, 0, 1);
+	tf::Vector3 lid_pos(para[1] - para[0], para[2], para[3]);
+	tf::Transform lid_tf(lid_q, lid_pos);
+
+	tf::TransformListener listener;
+	tf::StampedTransform transform;
+	tf::Transform lid_position;
+	tf::Transform lid_orientation;
+
+	while(ros::ok()) {
+		ros::Time t = ros::Time(0);
+
+		try {
+			listener.waitForTransform("/base", "right_gripper", t, ros::Duration(1.0));
+			listener.lookupTransform("/base", "right_gripper", t, transform);
+		}
+		catch(tf::TransformException ex) {
+			ROS_ERROR("%s", ex.what());
+			tf_status_ = false;
+		}
+
+		lid_position = transform * lid_tf;
+
+		//printf("x:%f, y:%f, z:%f\n", pose.getOrigin().getX(), pose.getOrigin().getY(), pose.getOrigin().getZ());
+
+		break;
+	}
+
+	tf::Quaternion x_rotation_q(tf::Vector3(1, 0, 0), PI/2);
+	tf::Vector3 x_pos(0, 0, 0);
+	tf::Transform x_tf(x_rotation_q, x_pos);
+
+	tf::Quaternion y_rotation_q(tf::Vector3(0, 0, 1), PI/2);
+	tf::Vector3 y_pos(0, 0, 0);
+	tf::Transform y_tf(y_rotation_q, y_pos);
+
+	tf_status_ = true;
+
+	while(ros::ok()) {
+		ros::Time t = ros::Time(0);
+
+		try {
+			listener.waitForTransform("/base", "/right_gripper", t, ros::Duration(1.0));
+			listener.lookupTransform("/base", "/right_gripper", t, transform);
+		}
+		catch(tf::TransformException ex) {
+			ROS_ERROR("%s", ex.what());
+			tf_status_ = false;
+		}
+
+		lid_orientation = transform * y_tf * x_tf;
+		//lid_orientation.inverse();
+
+		lid_pose_.orientation.x = lid_orientation.getRotation().x();
+		lid_pose_.orientation.y = lid_orientation.getRotation().y();
+		lid_pose_.orientation.z = lid_orientation.getRotation().z();
+		lid_pose_.orientation.w = lid_orientation.getRotation().w();
+
+		lid_pose_.position.x = lid_position.getOrigin().getX();
+		lid_pose_.position.y = lid_position.getOrigin().getY();
+		lid_pose_.position.z = lid_position.getOrigin().getZ();
+
+		break;
+	}
+
+}
+
+
+bool Grasp::graspingCap(huroco_grasping::graspCap::Request &req,
+						huroco_grasping::graspCap::Response &res)
+{
+	bottle_ = req.bottle;
+
+	tf_status_ = true;
+	sub_trigger_ = true;
+
+	computeCapPose();
+
+	res.lid_pose.orientation.x = lid_pose_.orientation.x;
+	res.lid_pose.orientation.y = lid_pose_.orientation.y;
+	res.lid_pose.orientation.z = lid_pose_.orientation.z;
+	res.lid_pose.orientation.w = lid_pose_.orientation.w;
+
+	res.lid_pose.position.x = lid_pose_.position.x;
+	res.lid_pose.position.y = lid_pose_.position.y;
+	res.lid_pose.position.z = lid_pose_.position.z;
+
+	res.status = tf_status_;
+
+	ros::ServiceClient left_client = nh_.serviceClient<huroco_left_arm::leftCartesian>("/huroco_left_arm/left_cartesian");
+	huroco_left_arm::leftCartesian left_srv;
+
+	geometry_msgs::Pose point;
+	point.orientation.x = lid_pose_.orientation.x;
+	point.orientation.y = lid_pose_.orientation.y;
+	point.orientation.z = lid_pose_.orientation.z;
+	point.orientation.w = lid_pose_.orientation.w;
+
+	point.position.x = lid_pose_.position.x;
+	point.position.y = lid_pose_.position.y;
+	point.position.z = lid_pose_.position.z + 0.07;
+
+	left_srv.request.waypoints.push_back(point);
+	left_srv.request.waypoints.push_back(res.lid_pose);
+
+	if(left_client.call(left_srv)) {
+
+	}
 
 	return true;
 }
