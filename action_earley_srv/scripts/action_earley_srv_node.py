@@ -1,4 +1,8 @@
+#!/usr/bin/env python
+import rospy
+import rospkg
 import nltk
+from action_earley_srv.srv import *
 
 
 def read_induced_grammar(path):
@@ -64,24 +68,40 @@ def predict_next_symbols(grammar, tokens):
     return zip(symbols_no_duplicate, probs_no_duplicate)
 
 
-def main():
-    grammar = read_induced_grammar('../grammars/parser_input.txt')
+def probability(req):
+    print 'calculate probability'
 
-    sentence = 'approach'
+    grammar = read_induced_grammar(rospkg.RosPack().get_path('action_earley_srv') + '/parser_input.txt')
+    sentence = req.action
+    print 'input sentence is', sentence
+
     tokens = sentence.split()
     prediction = predict_next_symbols(grammar, tokens)
-    print prediction
 
-    sentence = 'approach push'
-    tokens = sentence.split()
-    prediction = predict_next_symbols(grammar, tokens)
-    print prediction
+    action_label = []
+    action_prob = []
+    action_prob_raw = []
+    for i in range(len(prediction)):
+    	action_label.append(str(prediction[i][0]))
+    	action_prob_raw.append(float(prediction[i][1]))
+    prob_sum = sum(action_prob_raw)
+    for i in range(len(prediction)):
+    	action_prob.append(action_prob_raw[i] / prob_sum)
 
-    sentence = 'approach push twist'
-    tokens = sentence.split()
-    prediction = predict_next_symbols(grammar, tokens)
-    print prediction
+    resp = action_earleyResponse()
+    resp.action_seq = action_label
+    resp.action_prob = action_prob
+    resp.success = True
+    return resp
+    
+
+def actioin_earley_server():
+    rospy.init_node('action_earley_server')
+
+    s = rospy.Service('get_earley_action', action_earley, probability)
+    print 'earley service is ready'
+    rospy.spin()
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    actioin_earley_server()
