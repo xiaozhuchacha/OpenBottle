@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-from sentence_srv.srv import sentence
+from sentence_srv.srv import *
 import os
+import sys
 import re
 
 
@@ -10,12 +11,22 @@ def produce_sentence(req):
     cmd = sampler_dir + "/SampleSentence.sh " + "\"" + sampler_dir + "\" \"" + grammar_file + "\" \"" + sample_file \
           + "\" " + str(1)
     print "Executing command: %s" % cmd
-    os.system(cmd)
+    try:
+        os.system(cmd)
 
-    sentence = parse_sample(sample_file)
+        sentence = parse_sample()
 
-
-    return sentenceResponse()
+        resp = sentenceResponse()
+        resp.sentence = sentence
+        resp.success = True
+        return resp
+    except:
+        e = sys.exc_info()[0]
+        print "Error: %s" % e
+        resp = sentenceResponse()
+        resp.sentence = []
+        resp.success = False
+        return resp
 
 def sentence_server():
     rospy.init_node('sentence_server')
@@ -36,6 +47,7 @@ def sentence_server():
 
     global annotation_mapping
     annotation_mapping = parse_mapping(annotation_mapping_file)
+
     s = rospy.Service('get_sentence', sentence, produce_sentence)
     print "Ready to sample sentences"
     rospy.spin()
@@ -47,14 +59,13 @@ def parse_sample():
 
     sentence = []
     line = content[-1]
-    print line
     matches = re.findall('( [0-9]+ |^[0-9]+ )', line)
-    matches = [match.strip() for match in matches]
-    print matches
+    matches = [int(match.strip()) + 1 for match in matches]
 
     for match in matches:
-        
+        sentence.append(annotation_mapping[int(match)])
 
+    return sentence
 
 
 # create the annotation mapping between
@@ -65,7 +76,7 @@ def parse_mapping(file):
     annotation_mapping = dict()
     for mapping in content:
         pair = mapping.split(',')
-        annotation_mapping[pair[1]] = int(pair[0])
+        annotation_mapping[int(pair[1])] = pair[0]
 
     return annotation_mapping
 
