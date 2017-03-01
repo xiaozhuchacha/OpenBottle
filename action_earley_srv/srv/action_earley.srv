@@ -1,0 +1,5 @@
+string action
+---
+string[] action_seq
+float32[] action_prob
+bool success
