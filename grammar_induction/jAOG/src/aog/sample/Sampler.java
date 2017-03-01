@@ -20,12 +20,18 @@ public class Sampler {
 	 */
 	public static void main(String[] args) throws Exception {
 
-		int nSamples = 1000;
-		Grammar g = new Grammar("tmp/catGraphWRelationsSimple.3lvl.g2");
+		assert (args.length == 3);
+
+		String input_grammar_file = args[0];
+		String output_file = args[1];
+
+		int nSamples = Integer.parseInt(args[2]);
+
+		Grammar g = new Grammar(input_grammar_file);
 
 		System.out.println("Sampling...");
 		Corpus c = sampleCorpusFromGrammar(g, nSamples);
-		c.saveToFile("tmp/tmp.cp");
+		c.saveToFile(output_file);
 		System.out.println("Done sampling");
 
 		// Sample[] samples = c.samples;

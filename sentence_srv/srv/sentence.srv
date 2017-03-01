@@ -1,0 +1,4 @@
+uint32 dummy
+---
+string[] sentence
+bool success

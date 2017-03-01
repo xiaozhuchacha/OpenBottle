@@ -1,0 +1,16 @@
+<launch>
+    <arg name="annotation_mapping_file"
+         default="/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/annotations/annotation_mapping.txt" />
+    <arg name="sampler_dir"
+         default="/home/mark/Dropbox/Documents/SIMPLEX/OpenBottle/grammar_induction/" />
+    <arg name="grammar_file"
+         default="/home/mark/Dropbox/Documents/SIMPLEX/OpenBottle/grammar_induction/grammar.txt" />
+    <arg name="sample_file"
+         default="/home/mark/Dropbox/Documents/SIMPLEX/OpenBottle/grammar_induction/sample.txt" />
+    <node name="sentence_srv" pkg="sentence_srv" type="sentence_srv_node.py" output="screen">SIMPLEX/
+        <param name="annotation_mapping_file" type="string" value="$(arg annotation_mapping_file)" />SIMPLEX/
+        <param name="sampler_dir" type="string" value="$(arg sampler_dir)" />
+        <param name="grammar_file" type="string" value="$(arg grammar_file)" />
+        <param name="sample_file" type="string" value="$(arg sample_file)" />
+    </node>
+</launch>
