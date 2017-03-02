@@ -2,6 +2,10 @@
 import rospy
 import rospkg
 from transition_srv.srv import *
+from transition_srv.msg import *
+from std_msgs.msg import String
+from baxter_core_msgs.msg import EndpointState
+
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import numpy as np
@@ -11,6 +15,20 @@ import os
 import csv
 import random
 import tensorflow as tf
+import copy
+
+# global variables for callback data, should convert this to a single global class
+global prev_precondition    # precondition of completed action
+global cur_precondition     # precondition of next action (same as cur_postcondition)
+global prev_postcondition    # postcondition of completed action (same as cur_precondition)
+global force_torque
+global cur_action
+global gripper_status
+
+cur_precondition = np.zeros(shape=(7,1))
+prev_precondition = np.zeros(shape=(7,1))
+prev_postcondition = np.zeros(shape=(7,1))
+cur_action = "start"
 
 class DataLoader:
     def __init__(self):
@@ -386,6 +404,7 @@ Print out the probability tables of the current pre and post-condition observati
 '''
 def trans_prob(req):
     print 'calculating transition probability'
+    print force_called, gripper_called, status_called
     resp = transitionResponse()
 
     index_name = ['end', 'approach', 'move', 'grasp_left', 'grasp_right', 'ungrasp_left', 'ungrasp_right',
@@ -409,8 +428,8 @@ def trans_prob(req):
         # INSERT ACTUAL ROBOT MEASUREMENTS HERE
         # NOTE: if running from actual robot data, don't forget to divide the gripper
         # state by 255 (last dimension of feature vector)
-        x_robot_pre = np.random.normal(size=(1,7))
-        x_robot_post = np.random.normal(size=(1,7))
+        x_robot_pre = copy.deepcopy(np.transpose(prev_precondition))
+        x_robot_post = copy.deepcopy(np.transpose(prev_postcondition))
 
         y_output_pre = y_map_output.eval({x_map_input: x_robot_pre})
         y_output_post = y_map_output.eval({x_map_input: x_robot_post})
@@ -434,11 +453,72 @@ def trans_prob(req):
     return resp
 
 
+def gripperCallback_left(gripper_input):
+    global gripper_status
+
+    gripper_status = gripper_input.gPOA
+
+
+def execStatusCallback(status):
+    global prev_precondition    # precondition of completed action
+    global cur_precondition     # precondition of next action (same as cur_postcondition)
+    global prev_postcondition    # postcondition of completed action (same as cur_precondition)
+    global force_torque
+    global cur_action
+    global gripper_status
+    
+    print "prev_action: %s " % cur_action
+    cur_action = status.data
+    print "cur_action: %s " % cur_action
+
+
+    # update pre and post conditions
+    prev_precondition = copy.deepcopy(cur_precondition) # previous precondition is the last action's precondition (we are about to update cur_precondition)
+
+    cur_precondition[0] = copy.deepcopy(force_torque['force_x'])
+    cur_precondition[1] = copy.deepcopy(force_torque['force_y'])
+    cur_precondition[2] = copy.deepcopy(force_torque['force_z'])
+    cur_precondition[3] = copy.deepcopy(force_torque['torque_x'])
+    cur_precondition[4] = copy.deepcopy(force_torque['torque_y'])
+    cur_precondition[5] = copy.deepcopy(force_torque['torque_z'])
+    cur_precondition[6] = float(gripper_status) / 255     # normalize between 0 and 1
+    
+    # update the previous post condition
+    prev_postcondition = copy.deepcopy(cur_precondition)
+    
+    print "prev_precondition: "
+    print prev_precondition
+    print "cur_precondition: "
+    print cur_precondition
+    print "prev_postcondition: "
+    print prev_postcondition
+
+
+def forceCallback_left(endpoint_state):
+    global force_torque
+
+    force_torque = dict()
+    force_torque['force_x'] = endpoint_state.wrench.force.x;
+    force_torque['force_y'] = endpoint_state.wrench.force.y;
+    force_torque['force_z'] = endpoint_state.wrench.force.z;
+
+    force_torque['torque_x'] = endpoint_state.wrench.torque.x;
+    force_torque['torque_y'] = endpoint_state.wrench.torque.y;
+    force_torque['torque_z'] = endpoint_state.wrench.torque.z;
+
+
 def transition_server():
     rospy.init_node('transition_server')
 
     s = rospy.Service('get_transition', transition, trans_prob)
     print 'transition server is ready'
+
+    rospy.Subscriber("/SModelRobotInput", SModel_robot_input, gripperCallback_left)
+    rospy.Subscriber("/execution_status", String, execStatusCallback)
+    rospy.Subscriber("/robot/limb/left/endpoint_state", EndpointState, forceCallback_left)
+
+    global force_called, gripper_called, status_called
+    force_called = gripper_called = status_called = False;
     rospy.spin()
 
 
