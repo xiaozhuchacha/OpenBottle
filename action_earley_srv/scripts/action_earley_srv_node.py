@@ -71,7 +71,7 @@ def predict_next_symbols(grammar, tokens):
 def probability(req):
     print 'calculate probability'
 
-    grammar = read_induced_grammar(rospkg.RosPack().get_path('action_earley_srv') + '/parser_input.txt')
+    grammar = read_induced_grammar(rospkg.RosPack().get_path('open_bottle_common') + '/grammar/earley_parser_input.txt')
     sentence = req.action
     print 'input sentence is', sentence
 

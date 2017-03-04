@@ -1,3 +1,4 @@
+string[] sentence
 bool update
 ---
 bool success
