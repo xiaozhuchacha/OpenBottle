@@ -1,0 +1,5 @@
+bool update
+---
+float64[] current
+float64[] next
+bool success
