@@ -1,5 +1,5 @@
-string action
+string sentence
 ---
 string[] action_seq
-float32[] action_prob
+float64[] action_prob
 bool success
