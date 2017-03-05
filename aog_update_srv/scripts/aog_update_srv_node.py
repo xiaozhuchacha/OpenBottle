@@ -43,7 +43,7 @@ def convert_sentence_to_int(sentence, mapping):
         int_sentence += action_int + ' [' + str(idx) + ' ' + str(idx) + '] '
         idx += 1
 
-    print int_sentence
+    # print int_sentence
     # return int_sentence + '\n'
     return int_sentence
 
@@ -52,7 +52,7 @@ def update_sentences(sentence):
 
     annotation_mapping = parse_mapping()
 
-    print annotation_mapping
+    # print annotation_mapping
 
     open_bottle_common_path = rospkg.RosPack().get_path('open_bottle_common')
 
@@ -71,15 +71,14 @@ def update_sentences(sentence):
     # append new line to last line if needed
     if content[-1][-1] != '\n':
         content[-1] = content[-1] + ' \n'
-        print content[-1]
+        # print content[-1]
 
     content.append(new_sentence)
 
-    print content
+    # print content
 
     with open(sentence_file, 'w') as f:
         f.writelines(content)
-
 
 
 def load_aog(file_path):
@@ -152,9 +151,9 @@ def write_parser(root_node, and_nodes_parent, and_nodes_left_child, and_nodes_ri
             del and_nodes_left_child[root_index]
         elif root_node in or_nodes_parent:
             root_index = or_nodes_parent.index(root_node)
-            output_file.write('root_%d ->' % root_node)
-            for i in or_nodes_children[root_index]:
-                output_file.write(' %s %s\n' % (str_name[i], str(or_nodes_prob[root_index])))
+            for i, node in enumerate(or_nodes_children[root_index]):
+                output_file.write('root_%d ->' % root_node)
+                output_file.write(' %s [%s]\n' % (str_name[node], str(or_nodes_prob[root_index][i])))
 
             del or_nodes_parent[root_index]
             del or_nodes_children[root_index]
@@ -188,7 +187,7 @@ def update_aog(req):
     command = 'java -cp ' + open_bottle_common_path + '/jAOG/src:' + open_bottle_common_path \
      + '/jAOG/src/args4j-2.33.jar aog.learn.bc.GrammarLearner -combinerType aog.app.sequence.SequenceCombiner -bcRelationType aog.app.sequence.FollowingRelation -bgmRelationType aog.app.sequence.FollowingRelation -contextType aog.app.sequence.SequenceContext -input ' \
      + open_bottle_common_path + '/grammar/sentences.txt -output ' + open_bottle_common_path + '/grammar/grammar.txt'
-    print command 
+    # print command 
     subprocess.call(command.split(), stdout=open(os.devnull, 'wb'))
 
     root_node, and_nodes_parent, and_nodes_left_child, and_nodes_right_child, \
