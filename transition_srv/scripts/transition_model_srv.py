@@ -25,9 +25,15 @@ global force_torque
 global cur_action
 global gripper_status
 
-cur_precondition = np.zeros(shape=(7,1))
-prev_precondition = np.zeros(shape=(7,1))
-prev_postcondition = np.zeros(shape=(7,1))
+cur_precondition = np.random.sample(size=(7,1))
+prev_precondition = np.random.sample(size=(7,1))
+prev_postcondition = np.random.sample(size=(7,1))
+print "cur_precondition: "
+print np.transpose(cur_precondition)
+print "prev_precondition: "
+print np.transpose(prev_precondition)
+print "prev_postcondition: "
+print np.transpose(prev_postcondition)
 cur_action = "start"
 
 class DataLoader:
@@ -403,12 +409,21 @@ def create_model(n_input, n_classes, train=False):
 Print out the probability tables of the current pre and post-condition observations
 '''
 def trans_prob(req):
+    global prev_precondition    # precondition of completed action
+    global cur_precondition     # precondition of next action (same as cur_postcondition)
+    global prev_postcondition    # postcondition of completed action (same as cur_precondition)
+
     print 'calculating transition probability'
     print force_called, gripper_called, status_called
     resp = transitionResponse()
 
     index_name = ['end', 'approach', 'move', 'grasp_left', 'grasp_right', 'ungrasp_left', 'ungrasp_right',
                   'twist', 'push', 'neutral', 'pull', 'pinch', 'unpinch']
+
+    if req.reinit:
+        cur_precondition = np.random.sample(size=(7,1))
+        prev_precondition = np.random.sample(size=(7,1))
+        prev_postcondition = np.random.sample(size=(7,1))
 
     n_input = 159
     n_classes = 13
@@ -449,8 +464,18 @@ def trans_prob(req):
             else:
                 print(' {}\t{:.6f}\t{:.6f}'.format(name, res_current[0,j], res_next[0,j]))
 
-    resp = transition_srvResponse()
-    resp.current = 
+    output_file = rospkg.RosPack().get_path('open_bottle_common') + '/output/transition_probs.txt'
+    with open(output_file, 'a') as f:
+        now = rospy.get_rostime()
+        f.write('%i %i %f %f %f %f %f %f %f %f %f %f %f %f %f\n' % (now.secs, now.nsecs, res_current[0,0], res_current[0,1],
+                 res_current[0,2], res_current[0,3], res_current[0,4], res_current[0,5], res_current[0,6], res_current[0,7],
+                 res_current[0,8], res_current[0,9], res_current[0,10], res_current[0,11], res_current[0,12]))
+        f.write('%i %i %f %f %f %f %f %f %f %f %f %f %f %f %f\n' % (now.secs, now.nsecs, res_next[0,0], res_next[0,1],
+                 res_next[0,2], res_next[0,3], res_next[0,4], res_next[0,5], res_next[0,6], res_next[0,7],
+                 res_next[0,8], res_next[0,9], res_next[0,10], res_next[0,11], res_next[0,12]))
+
+    resp.current = res_current[0,:]
+    resp.next = res_next[0,:]
     resp.success = True
     return resp
 
@@ -489,11 +514,11 @@ def execStatusCallback(status):
     prev_postcondition = copy.deepcopy(cur_precondition)
     
     print "prev_precondition: "
-    print prev_precondition
+    print np.transpose(prev_precondition)
     print "cur_precondition: "
-    print cur_precondition
+    print np.transpose(cur_precondition)
     print "prev_postcondition: "
-    print prev_postcondition
+    print np.transpose(prev_postcondition)
 
 
 def forceCallback_left(endpoint_state):

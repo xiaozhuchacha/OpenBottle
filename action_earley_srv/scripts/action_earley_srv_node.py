@@ -72,7 +72,7 @@ def probability(req):
     print 'calculate probability'
 
     grammar = read_induced_grammar(rospkg.RosPack().get_path('open_bottle_common') + '/grammar/earley_parser_input.txt')
-    sentence = req.action
+    sentence = req.sentence
     print 'input sentence is', sentence
 
     tokens = sentence.split()
@@ -87,6 +87,18 @@ def probability(req):
     prob_sum = sum(action_prob_raw)
     for i in range(len(prediction)):
     	action_prob.append(action_prob_raw[i] / prob_sum)
+
+    print "computed probs: "
+    print action_prob
+    print action_label
+
+    output_file = rospkg.RosPack().get_path('open_bottle_common') + '/output/earley_probs.txt'
+    with open(output_file, 'a') as f:
+        now = rospy.get_rostime()
+        data = ''
+        for i in range(0, len(action_prob)):
+            data += action_label[i] + ' ' + str(action_prob[i]) + ' '
+        f.write('%i %i %s\n' % (now.secs, now.nsecs, data))
 
     resp = action_earleyResponse()
     resp.action_seq = action_label
