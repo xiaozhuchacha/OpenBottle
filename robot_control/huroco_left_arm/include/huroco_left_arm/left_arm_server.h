@@ -15,6 +15,9 @@
 #include "huroco_left_arm/leftExec.h"
 #include "huroco_left_arm/leftCartesian.h"
 #include "huroco_left_arm/rotateLeftWrist.h"
+#include "huroco_left_arm/leftStop.h"
+
+const std::string name = "huroco_left_arm";
 
 
 class LeftArmServer
@@ -30,18 +33,20 @@ private:
 	ros::ServiceServer left_exec_;
 	ros::ServiceServer left_cartesian_;
 	ros::ServiceServer rotate_wrist_;
+	ros::ServiceServer left_stop_;
 
 	std::unique_ptr<ArmManipulator> controller_;
-
-
-	bool leftExec(huroco_left_arm::leftExec::Request &req,
-				  huroco_left_arm::leftExec::Response &res);
+	
 
 	bool leftCartesianPath(huroco_left_arm::leftCartesian::Request &req,
 						   huroco_left_arm::leftCartesian::Response &res);
 
 	bool rotateLeftWrist(huroco_left_arm::rotateLeftWrist::Request &req,
 						 huroco_left_arm::rotateLeftWrist::Response &res);
+
+	bool leftStop(huroco_left_arm::leftStop::Request &req,
+				  huroco_left_arm::leftStop::Response &res);
+
 };
 
 #endif

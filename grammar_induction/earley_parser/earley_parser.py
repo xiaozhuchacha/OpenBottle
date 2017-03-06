@@ -72,12 +72,32 @@ def main():
     prediction = predict_next_symbols(grammar, tokens)
     print prediction
 
-    sentence = 'approach push'
+    sentence = 'approach pinch'
     tokens = sentence.split()
     prediction = predict_next_symbols(grammar, tokens)
     print prediction
 
-    sentence = 'approach push twist'
+    sentence = 'approach pinch twist'
+    tokens = sentence.split()
+    prediction = predict_next_symbols(grammar, tokens)
+    print prediction
+
+    sentence = 'approach pinch twist unpinch'
+    tokens = sentence.split()
+    prediction = predict_next_symbols(grammar, tokens)
+    print prediction
+
+    sentence = 'approach pinch twist unpinch move'
+    tokens = sentence.split()
+    prediction = predict_next_symbols(grammar, tokens)
+    print prediction
+
+    sentence = 'approach pinch twist unpinch move grasp_right'
+    tokens = sentence.split()
+    prediction = predict_next_symbols(grammar, tokens)
+    print prediction
+
+    sentence = 'approach pinch twist unpinch move grasp_right twist'
     tokens = sentence.split()
     prediction = predict_next_symbols(grammar, tokens)
     print prediction

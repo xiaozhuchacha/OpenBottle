@@ -4,6 +4,8 @@
 #define ATTEMPTS 5
 
 #include <ros/ros.h>
+#include <control_msgs/FollowJointTrajectoryActionResult.h>
+
 #include <vector>
 #include <string>
 #include <moveit/move_group_interface/move_group_interface.h>
@@ -22,11 +24,13 @@ public:
 
 	void setServer(RightArmServer *server);
 
-	int executeGoal(const geometry_msgs::PoseStamped goal);
+	void getExecStatus(const control_msgs::FollowJointTrajectoryActionResult msg);
 
-	int executeCartesianPath(const std::vector<geometry_msgs::Pose> waypoints, const double step);
+	int executeCartesianPath(std::vector<geometry_msgs::Pose> waypoints);
 
 	int initPose();
+
+	void abortExecution();
 
 private:
 	int tryComputingCartesian(moveit::planning_interface::MoveGroupInterface &group, moveit_msgs::RobotTrajectory &trajectory, const double step, const std::vector<geometry_msgs::Pose> waypoints);
@@ -35,9 +39,15 @@ private:
 
 	ros::NodeHandle nh_;
 
+	ros::Subscriber exec_status_sub_;
+
 	moveit::planning_interface::MoveGroupInterface &move_group_;
 
 	RightArmServer *server_;
+
+	int exec_status_;
+
+	bool sub_trigger_;
 };
 
 #endif

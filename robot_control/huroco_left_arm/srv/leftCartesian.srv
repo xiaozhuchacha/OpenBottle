@@ -1,4 +1,3 @@
 geometry_msgs/Pose[] waypoints
-float64 step
 ---
 int32 status

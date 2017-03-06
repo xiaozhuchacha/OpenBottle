@@ -1,0 +1,32 @@
+1488752264.275956638 previous_actions: approach 
+1488752264.275956638 earley_action: push 0.369231 grasp_right 0.477578 pinch 0.153191 
+1488752264.275956638 transition_predict: push 1.000000 grasp_right 0.000000 pinch 0.000000 
+1488752269.702788801 previous_actions: approach push 
+1488752269.702788801 earley_action: twist 1.000000 
+1488752269.702788801 transition_predict: twist 0.000000 
+1488752279.990308173 previous_actions: approach push twist 
+1488752279.990308173 earley_action: neutral 1.000000 
+1488752279.990308173 transition_predict: neutral 0.000000 
+1488752286.425546160 previous_actions: approach push twist neutral 
+1488752286.425546160 earley_action: move 0.500000 grasp_right 0.500000 
+1488752286.425546160 transition_predict: move 0.000000 grasp_right 0.000000 
+1488752296.742043996 previous_actions: approach push twist neutral move 
+1488752296.742043996 earley_action: push 1.000000 
+1488752296.742043996 transition_predict: push 0.000000 
+1488752302.246172395 previous_actions: approach push twist neutral move push 
+1488752302.246172395 earley_action: twist 1.000000 
+1488752302.246172395 transition_predict: twist 1.000000 
+1488752312.521944288 previous_actions: approach push twist neutral move push twist 
+1488752312.521944288 earley_action: neutral 1.000000 
+1488752312.521944288 transition_predict: neutral 0.000000 
+1488752318.964510463 previous_actions: approach push twist neutral move push twist neutral 
+1488752318.964510463 earley_action: move 0.500000 grasp_right 0.500000 
+1488752318.964510463 transition_predict: move 0.000000 grasp_right 0.000000 
+1488752324.201682121 previous_actions: approach push twist neutral move push twist neutral grasp_right 
+1488752324.201682121 earley_action: twist 0.308511 pull 0.691489 
+1488752324.201682121 transition_predict: twist 0.987811 pull 0.000000 
+1488752334.530987550 previous_actions: approach push twist neutral move push twist neutral grasp_right twist 
+1488752334.530987550 earley_action: pull 1.000000 
+1488752334.530987550 transition_predict: pull 0.000071 
+1488752338.4842822 previous_actions: approach push twist neutral move push twist neutral grasp_right twist pull 
+

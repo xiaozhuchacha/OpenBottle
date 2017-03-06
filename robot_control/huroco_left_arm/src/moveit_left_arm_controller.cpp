@@ -13,6 +13,9 @@ ArmManipulator::ArmManipulator(moveit::planning_interface::MoveGroupInterface &g
 	move_group_.allowReplanning(true);
 	move_group_.setMaxVelocityScalingFactor(0.5);
 	move_group_.setMaxAccelerationScalingFactor(0.5);
+
+	exec_status_sub_ = nh_.subscribe("/robot/limb/left/follow_joint_trajectory/result", 1000, &ArmManipulator::getExecStatus, this);
+	joint_sub_ = nh_.subscribe("/robot/joint_states", 1000, &ArmManipulator::getLeftArmState, this);
 }
 
 
@@ -82,14 +85,27 @@ void ArmManipulator::getLeftArmState(const sensor_msgs::JointState msg)
 }
 
 
+void ArmManipulator::getExecStatus(const control_msgs::FollowJointTrajectoryActionResult msg)
+{	
+	exec_status_ = msg.status.status;
+
+	std::cout << "Updated exec_status_ to " << exec_status_ << std::endl;
+
+	sub_trigger_ = false;
+}
+
+
+
 int ArmManipulator::rotateWrist(const double radian)
 {
 	sub_trigger_ = true;
 
-	ros::Subscriber sub = nh_.subscribe("/robot/joint_states", 1, &ArmManipulator::getLeftArmState, this);
-
 	while(sub_trigger_) {
-		ros::spinOnce();
+		if(sub_trigger_ == true) ros::spinOnce();
+		else {
+			joint_sub_.shutdown();
+			break;
+		}
 	}
 
 	std::map<std::string, double> joint_values;
@@ -101,12 +117,24 @@ int ArmManipulator::rotateWrist(const double radian)
 	moveit::planning_interface::MoveGroupInterface::Plan plan;
 
 	int joint_space_status = tryPlanning(move_group_, plan);
-	int execute_status;
+
+	sub_trigger_ = true;
 
 	if(joint_space_status) {
-		ROS_INFO("Rotating joints");
-		execute_status = move_group_.execute(plan);
-		return execute_status;
+
+		move_group_.asyncExecute(plan);
+
+		while(1) {
+			if(sub_trigger_ == true) ros::spinOnce();
+			else {
+				exec_status_sub_.shutdown();
+				break;
+			}
+		}
+
+		sleep(1.0);
+
+		return exec_status_;		
 	}
 	else {
 		ROS_ERROR("Invalid rotation");
@@ -115,39 +143,55 @@ int ArmManipulator::rotateWrist(const double radian)
 }
 
 
-int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoints, const double step)
+int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoints)
 {
+	sub_trigger_ = true;
+
 	moveit_msgs::RobotTrajectory trajectory;
 	moveit::planning_interface::MoveGroupInterface::Plan plan;
 
 	int cartesian_status;
-	int execute_status;
-/*
+
+	/* Robotiq TF */
 	tf::Quaternion robotiq_q(0, 0, 0, 1);
 	tf::Vector3 robotiq_t(0.0, 0.0, -0.142);
 
 	tf::Transform tf(robotiq_q, robotiq_t);
 
 
-	geometry_msgs::Pose point = waypoints[0];
+	std::vector<geometry_msgs::Pose>::iterator iter;
+	for(iter = waypoints.begin(); iter != waypoints.end(); iter++) {
+		tf::Quaternion robotiq_qt(iter->orientation.x, iter->orientation.y, iter->orientation.z, iter->orientation.w);
+		tf::Vector3 robotiq_tt(iter->position.x, iter->position.y, iter->position.z);
 
-	tf::Quaternion robotiq_qt(point.orientation.x, point.orientation.y, point.orientation.z, point.orientation.w);
-	tf::Vector3 robotiq_tt(point.position.x, point.position.y, point.position.z);
+		tf::Transform tf_t(robotiq_qt, robotiq_tt);
 
-	tf::Transform tf_t(robotiq_qt, robotiq_tt);
+		tf::Vector3 left_eef = tf_t * robotiq_t;
 
-	tf::Vector3 left_eef = tf_t * robotiq_t;
+		iter->position.x = left_eef.getX();
+		iter->position.y = left_eef.getY();
+		iter->position.z = left_eef.getZ();
+	}
 
-	waypoints[0].position.x = left_eef.getX();
-	waypoints[0].position.y = left_eef.getY();
-	waypoints[0].position.z = left_eef.getZ();
-*/
+	double step = 0.001;
+	//nh_.getParam("step", step);
+	//printf("%f", step);
+
 	cartesian_status = tryComputingCartesian(move_group_, trajectory, step, waypoints);
 	if(cartesian_status) {
 		plan.trajectory_ = trajectory;
 		ROS_INFO("Computed cartesian path successfully, trying to execute.");
-		execute_status = move_group_.execute(plan);
-		return execute_status;
+		move_group_.asyncExecute(plan);
+
+		while(1) {
+			if(sub_trigger_ == true) ros::spinOnce();
+			else {
+				exec_status_sub_.shutdown();
+				break;
+			}
+		}
+
+		return exec_status_;
 	}
 	else {
 		ROS_ERROR("Not able to compute complete cartesian path with given waypoints, check your waypoints.");
@@ -157,24 +201,8 @@ int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoi
 }
 
 
-int ArmManipulator::executeGoal(const geometry_msgs::PoseStamped goal)
-{
-	move_group_.setPoseTarget(goal.pose, "left_gripper");
-	moveit::planning_interface::MoveGroupInterface::Plan plan;
-	if(tryPlanning(move_group_, plan)) {
-		ROS_INFO("Now execute goal");
-		move_group_.execute(plan);
-		move_group_.clearPoseTarget();
-	}
-	else {
-		ROS_INFO("No execution attempt");
-		move_group_.clearPoseTarget();
-	}
-
-}
-
-
 void ArmManipulator::abortExecution()
 {
 	move_group_.stop();
 }
+

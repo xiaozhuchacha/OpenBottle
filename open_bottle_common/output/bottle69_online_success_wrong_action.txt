@@ -1,0 +1,22 @@
+1488754066.624064199 previous_actions: approach 
+1488754066.624064199 earley_action: push 0.369231 grasp_right 0.477578 pinch 0.153191 
+1488754066.624064199 transition_predict: push 0.000000 grasp_right 0.000000 pinch 0.000000 
+1488754071.119776896 previous_actions: approach push 
+1488754071.119776896 earley_action: twist 1.000000 
+1488754071.119776896 transition_predict: twist 0.984990 
+1488754081.414954275 previous_actions: approach push twist 
+1488754081.414954275 earley_action: neutral 1.000000 
+1488754081.414954275 transition_predict: neutral 0.010071 
+1488754087.938968876 previous_actions: approach push twist neutral 
+1488754087.938968876 earley_action: move 0.500000 grasp_right 0.500000 
+1488754087.938968876 transition_predict: move 0.000000 grasp_right 0.007954 
+1488754093.163144785 previous_actions: approach push twist neutral grasp_right 
+1488754093.163144785 earley_action: twist 0.308511 pull 0.691489 
+1488754093.163144785 transition_predict: twist 0.996567 pull 0.000000 
+1488754103.435031251 previous_actions: approach push twist neutral grasp_right twist 
+1488754103.435031251 earley_action: pull 1.000000 
+1488754103.435031251 transition_predict: pull 0.000030 
+1488754106.891475412 previous_actions: approach push twist neutral grasp_right twist pull 
+1488754106.891475412 earley_action: push 1.000000 
+1488754106.891475412 transition_predict: push 0.000000 
+1488754112.387767168 previous_actions: approach push twist neutral grasp_right twist pull push 

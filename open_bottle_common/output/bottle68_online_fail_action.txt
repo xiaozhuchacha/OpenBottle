@@ -1,0 +1,50 @@
+1488753013.816558983 previous_actions: approach 
+1488753013.816558983 earley_action: push 0.369231 grasp_right 0.477578 pinch 0.153191 
+1488753013.816558983 transition_predict: push 0.000000 grasp_right 0.000536 pinch 0.000000 
+1488753018.306238395 previous_actions: approach push 
+1488753092.549449674 previous_actions: approach 
+1488753092.549449674 earley_action: push 0.369231 grasp_right 0.477578 pinch 0.153191 
+1488753092.549449674 transition_predict: push 0.000000 grasp_right 0.000000 pinch 0.000000 
+1488753096.771612387 previous_actions: approach pinch 
+1488753096.771612387 earley_action: twist 1.000000 
+1488753096.771612387 transition_predict: twist 0.970693 
+1488753107.49304681 previous_actions: approach pinch twist 
+1488753107.49304681 earley_action: unpinch 1.000000 
+1488753107.49304681 transition_predict: unpinch 0.000000 
+1488753112.275499673 previous_actions: approach pinch twist unpinch 
+1488753112.275499673 earley_action: move 1.000000 
+1488753112.275499673 transition_predict: move 0.000000 
+1488753122.630612500 previous_actions: approach pinch twist unpinch move 
+1488753122.630612500 earley_action: pinch 0.043459 grasp_right 0.956541 
+1488753122.630612500 transition_predict: pinch 1.000000 grasp_right 0.000000 
+1488753127.864542073 previous_actions: approach pinch twist unpinch move pinch 
+1488753127.864542073 earley_action: twist 1.000000 
+1488753127.864542073 transition_predict: twist 0.971470 
+1488753138.167504878 previous_actions: approach pinch twist unpinch move pinch twist 
+1488753138.167504878 earley_action: unpinch 1.000000 
+1488753138.167504878 transition_predict: unpinch 0.000000 
+1488753143.438211990 previous_actions: approach pinch twist unpinch move pinch twist unpinch 
+1488753143.438211990 earley_action: move 1.000000 
+1488753143.438211990 transition_predict: move 1.000000 
+1488753153.754364658 previous_actions: approach pinch twist unpinch move pinch twist unpinch move 
+1488753153.754364658 earley_action: pinch 0.043459 grasp_right 0.956541 
+1488753153.754364658 transition_predict: pinch 0.000000 grasp_right 0.000000 
+1488753158.985816289 previous_actions: approach pinch twist unpinch move pinch twist unpinch move grasp_right 
+1488753158.985816289 earley_action: pull 0.625427 twist 0.374573 
+1488753158.985816289 transition_predict: pull 0.000000 twist 0.996411 
+1488753169.297528179 previous_actions: approach pinch twist unpinch move pinch twist unpinch move grasp_right twist 
+1488753169.297528179 earley_action: pull 0.867487 ungrasp_right 0.132513 
+1488753169.297528179 transition_predict: pull 0.000000 ungrasp_right 0.000000 
+1488753174.573505805 previous_actions: approach pinch twist unpinch move pinch twist unpinch move grasp_right twist ungrasp_right 
+1488753174.573505805 earley_action: move 1.000000 
+1488753174.573505805 transition_predict: move 1.000000 
+1488753184.897451525 previous_actions: approach pinch twist unpinch move pinch twist unpinch move grasp_right twist ungrasp_right move 
+1488753184.897451525 earley_action: pinch 0.043459 grasp_right 0.956541 
+1488753184.897451525 transition_predict: pinch 0.000000 grasp_right 0.000000 
+1488753190.141494406 previous_actions: approach pinch twist unpinch move pinch twist unpinch move grasp_right twist ungrasp_right move grasp_right 
+1488753190.141494406 earley_action: pull 0.625427 twist 0.374573 
+1488753190.141494406 transition_predict: pull 0.000000 twist 0.999990 
+1488753200.428539713 previous_actions: approach pinch twist unpinch move pinch twist unpinch move grasp_right twist ungrasp_right move grasp_right twist 
+1488753200.428539713 earley_action: pull 0.867487 ungrasp_right 0.132513 
+1488753200.428539713 transition_predict: pull 0.000000 ungrasp_right 0.000000 
+1488753203.933625231 previous_actions: approach pinch twist unpinch move pinch twist unpinch move grasp_right twist ungrasp_right move grasp_right twist pull 

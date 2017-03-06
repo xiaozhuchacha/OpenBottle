@@ -1,6 +1,7 @@
 #include "huroco_right_arm/moveit_right_arm_controller.h"
 #include "huroco_right_arm/right_arm_server.h"
 
+
 #define SUCCESS 1
 #define FAILURE 0
 
@@ -24,6 +25,14 @@ ArmManipulator::~ArmManipulator()
 void ArmManipulator::setServer(RightArmServer *server)
 {
 	server_ = server;
+}
+
+
+void ArmManipulator::getExecStatus(const control_msgs::FollowJointTrajectoryActionResult msg)
+{	
+	sub_trigger_ = false;
+
+	exec_status_ = msg.status.status;
 }
 
 
@@ -69,18 +78,19 @@ int ArmManipulator::tryPlanning(moveit::planning_interface::MoveGroupInterface &
 }
 
 
-int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoints, const double step)
+int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoints)
 {
+	sub_trigger_ = true;
+
 	moveit_msgs::RobotTrajectory trajectory;
 	moveit::planning_interface::MoveGroupInterface::Plan plan;
 
 	int cartesian_status;
-	int execute_status;
 
 	/* reflex gripper TF */
 
 	tf::Quaternion reflex_q(0, 0, 0, 1);
-	tf::Vector3 reflex_t(-0.036, 0.020, -0.14);
+	tf::Vector3 reflex_t(-0.02, 0.022, -0.09);
 
 	tf::Transform tf(reflex_q, reflex_t);
 
@@ -96,16 +106,29 @@ int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoi
 
 		iter->position.x = right_eef.getX();
 		iter->position.y = right_eef.getY();
-		iter->position.z = right_eef.getZ();	
+		iter->position.z = right_eef.getZ();
 	}
 
+	double step = 0.001;
+	//nh_.getParam("step", step);
 
 	cartesian_status = tryComputingCartesian(move_group_, trajectory, step, waypoints);
 	if(cartesian_status) {
 		plan.trajectory_ = trajectory;
 		ROS_INFO("Computed cartesian path successfully, trying to execute.");
-		execute_status = move_group_.execute(plan);
-		return execute_status;
+		move_group_.asyncExecute(plan);
+
+		exec_status_sub_ = nh_.subscribe("/robot/limb/right/follow_joint_trajectory/result", 1, &ArmManipulator::getExecStatus, this);
+
+		while(1) {
+			if(sub_trigger_ == true) ros::spinOnce();
+			else {
+				exec_status_sub_.shutdown();
+				break;
+			}
+		}
+
+		return exec_status_;
 	}
 	else {
 		ROS_ERROR("Not able to compute complete cartesian path with given waypoints, check your waypoints.");
@@ -113,27 +136,12 @@ int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoi
 	}
 }
 
-int ArmManipulator::executeGoal(const geometry_msgs::PoseStamped goal)
-{
-	move_group_.setPoseTarget(goal.pose, "reflex_frame");
-	moveit::planning_interface::MoveGroupInterface::Plan plan;
-	if(tryPlanning(move_group_, plan)) {
-		ROS_INFO("Now execute goal");
-		move_group_.execute(plan);
-		move_group_.clearPoseTarget();
-	}
-	else {
-		ROS_INFO("No execution attempt");
-		move_group_.clearPoseTarget();
-	}
-}
 
-/*
-void ArmManipulator::stop()
+void ArmManipulator::abortExecution()
 {
 	move_group_.stop();
 }
-*/
+
 
 int ArmManipulator::initPose()
 {

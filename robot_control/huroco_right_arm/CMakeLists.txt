@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   std_srvs
   geometry_msgs
+  control_msgs
   message_generation
   genmsg
 )
@@ -66,6 +67,7 @@ add_service_files(
    rightExec.srv
    rightCartesian.srv
    rightInit.srv
+   rightStop.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -81,6 +83,7 @@ generate_messages(
    std_msgs
    std_srvs
    geometry_msgs
+   control_msgs
 )
 
 ################################################

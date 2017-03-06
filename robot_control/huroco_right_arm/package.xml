@@ -52,6 +52,8 @@
   <build_depend>moveit_ros_perception</build_depend>
   <build_depend>moveit_ros_planning_interface</build_depend>
   <build_depend>pluginlib</build_depend>
+  <build_depend>control_msgs</build_depend>
+
 
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
@@ -65,6 +67,7 @@
   <run_depend>moveit_ros_perception</run_depend>
   <run_depend>moveit_ros_planning_interface</run_depend>
   <run_depend>pluginlib</run_depend>
+  <run_depend>control_msgs</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

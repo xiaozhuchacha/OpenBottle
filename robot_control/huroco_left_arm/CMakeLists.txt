@@ -63,9 +63,9 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 ## Generate services in the 'srv' folder
 add_service_files(
    FILES
-   leftExec.srv
    leftCartesian.srv
    rotateLeftWrist.srv
+   leftStop.srv
 )
 
 ## Generate actions in the 'action' folder
