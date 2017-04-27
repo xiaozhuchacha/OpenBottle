@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC -g  -shared -Wl,-soname,libgtest.so -o libgtest.so CMakeFiles/gtest.dir/src/gtest-all.cc.o  -L/home/mark/catkin_ws/src/open_bottle_utilities/csv_segment_proc/cmake-build-debug/gtest/src -Wl,-rpath,/home/mark/catkin_ws/src/open_bottle_utilities/csv_segment_proc/cmake-build-debug/gtest/src -lpthread 

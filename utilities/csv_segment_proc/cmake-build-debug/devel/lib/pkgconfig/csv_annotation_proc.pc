@@ -1,0 +1,8 @@
+prefix=/home/mark/catkin_ws/src/open_bottle_utilities/csv_segment_proc/cmake-build-debug/devel
+
+Name: csv_annotation_proc
+Description: Description of csv_annotation_proc
+Version: 0.0.0
+Cflags: -I/home/mark/catkin_ws/src/open_bottle_utilities/csv_segment_proc/include
+Libs: -L/home/mark/catkin_ws/src/open_bottle_utilities/csv_segment_proc/cmake-build-debug/devel/lib 
+Requires: 

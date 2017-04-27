@@ -1,0 +1,56 @@
+//
+// Created by mark on 4/21/17.
+//
+
+#ifndef CSV_ANNOTATION_PROC_SEGMENT_PARSER_H
+#define CSV_ANNOTATION_PROC_SEGMENT_PARSER_H
+
+#include "util.h"
+#include <boost/filesystem.hpp>
+
+// stores a single action segment. Consists fo start time, end time, and the trial identifier
+// (to map back to original file)
+class ActionSegment{
+public:
+  ActionSegment(std::string action, int end_time_sec, int end_time_nsec, std::string trial_id) :
+                action(action), end_time_sec(end_time_sec), end_time_nsec(end_time_nsec),
+                trial_id(trial_id), start_time_sec(-1), start_time_nsec(-1)
+  {
+
+  }
+  ~ActionSegment() {};
+
+  std::string action;
+  std::string next_action;
+  int start_time_sec;
+  int start_time_nsec;
+  int end_time_sec;
+  int end_time_nsec;
+  std::string trial_id;
+};
+
+// managers segments across all actions
+class SegmentManager {
+public:
+  SegmentManager();
+  ~SegmentManager(){};
+
+  void add_segment(ActionSegment* new_segment);
+private:
+
+  // maps each action to a list of ActionSegment
+  std::unordered_map<std::string, std::vector<ActionSegment*>> action_segements;
+};
+
+// loads segments from a directory and loads them into Segment manager
+class SegmentParser {
+public:
+  SegmentParser();
+  ~SegmentParser(){};
+
+  SegmentManager manager;
+
+  void parse_segment(std::string segment_file);
+};
+
+#endif //CSV_ANNOTATION_PROC_SEGMENT_PARSER_H

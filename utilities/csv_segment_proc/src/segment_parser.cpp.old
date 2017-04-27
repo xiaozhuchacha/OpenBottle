@@ -1,0 +1,72 @@
+//
+// Created by mark on 4/21/17.
+//
+
+#include "segment_parser.h.old"
+#include "util.h"
+
+/*
+ * Segment Parser definitions
+ */
+SegmentParser::SegmentParser() {
+
+}
+
+void SegmentParser::parse_segment(std::string segment_file){
+  std::ifstream infile(segment_file);
+  std::string line;
+
+  boost::filesystem::path p(segment_file);
+  std::string trial_id = p.filename().string();
+  unsigned long underscore_idx = trial_id.find_first_of("_");
+  trial_id = trial_id.substr(0,underscore_idx);
+
+  // keep track of previous actions to update prev_action and next_action for each segment
+  ActionSegment *prev_action = nullptr;
+
+  while(std::getline(infile, line)){
+    if(line.substr(0,3) == "---") // skip first line
+      continue;
+    std::vector<std::string> tokens;
+    boost::split(tokens, line, boost::is_any_of(","), boost::token_compress_on);
+
+    std::string action = tokens[0];
+    // each action is labeled as the end, the time between the previous label and the current label is
+    // the duration of the current label
+    int end_time_sec = std::stoi(tokens[1]);
+    int end_time_nsec = std::stoi(tokens[2]);
+    ActionSegment* new_segment = new ActionSegment(action, end_time_sec, end_time_nsec, trial_id);
+
+    manager.add_segment(new_segment);
+
+    // update values and update previous actions
+    if(prev_action == nullptr){
+      prev_action = new_segment;
+    } else {
+      // update previous action
+      prev_action->next_action = new_segment->action;
+      new_segment->start_time_sec = prev_action->end_time_sec;
+      new_segment->start_time_nsec = prev_action->end_time_nsec;
+      prev_action = new_segment;
+    }
+  }
+}
+
+/*
+ * Segment Manager definitions
+ */
+SegmentManager::SegmentManager() {
+
+}
+
+void SegmentManager::add_segment(ActionSegment* new_segment) {
+  auto manager_iter = action_segements.find(new_segment->action);
+  // new entry
+  if (manager_iter == action_segements.end()){
+    action_segements.insert({new_segment->action, std::vector<ActionSegment*>(1, new_segment)});
+  }
+  // append segment to existing list
+  else {
+    manager_iter->second.push_back(new_segment);
+  }
+}

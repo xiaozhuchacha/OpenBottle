@@ -36,6 +36,7 @@ class DataLoader:
             force_num = data['force_window_width'][0][0]
             data = data['windows']
 
+            # data format: pre followed by post condition row (every other row)
             pose_pre_data = np.array(data[0::2, 3:3+pose_num])
             pose_post_data = np.array(data[1::2, 3:3+pose_num])
             force_pre_data = np.array(data[0::2, 3+pose_num:3+pose_num+force_num])

@@ -44,41 +44,50 @@ class TrialContent:
         self.label = label
 
         # find indices that match this label
-        minor_group = np.where(self.label[1] == labels[:, 1])[0]
-        major_group = np.where(self.label[0] == labels[:, 0])[0]
-        group = np.intersect1d(minor_group, major_group)
+        minor_group = np.where(self.label[1] == labels[:, 1])
+        if minor_group is not None:
+            minor_group = minor_group[0]
+        else:
+            return
+        major_group = np.where(self.label[0] == labels[:, 0])
+        if major_group is not None:
+            major_group = major_group[0]
+        else:
+            return
 
-        self.forces = forces[group]
-        self.poses = poses[group]
-        self.times = times[group]
+        group = np.intersect1d(minor_group, major_group)
+        if group.size == 0:
+            self.forces = []
+            self.poses = []
+            self.times = []
+        else:
+            self.forces = forces[group]
+            self.poses = poses[group]
+            self.times = times[group]
 
 
 def main():
-    # input_force_mat = sys.argv[1]
-    # input_pose_mat = sys.argv[2]
-    # input_times = sys.argv[3]
-    # input_annotation_mat = sys.argv[4]
+    data_mat_file = sys.argv[1]
+    times_file = sys.argv[2]
+    tf_ordering_file = sys.argv[3]
+    labels_file = sys.argv[4]
+    # annotation_mat_file = sys.argv[3]
 
-    input_force_mat = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions' \
-                    '/hand_only_csvs/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_forces.mat'
-    input_pose_mat = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions' \
-                    '/hand_only_csvs/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_poses.mat'
-    input_times = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions' \
-                  '/hand_only_csvs' \
-                '/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_times.mat'
-    input_labels = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata/pca_prepostconditions/hand_only_csvs' \
-                '/all/bottle_success_corrected_order3-3.2-4-9-8-12-13_label.mat'
-    input_annotation_mat = '/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local/glovedata' \
+    annotation_mat_file = '/home/mark/datacollection/11_29_data_local/glovedata' \
                            '/annotations/all/annotation.mat'
 
-    annotation_mapping = parse_mapping('/home/mark/Dropbox/Documents/SIMPLEX/DataCollection/11_29_data_local'
+    annotation_mapping = parse_mapping('/home/mark/datacollection/11_29_data_local'
                                        '/glovedata/annotations/annotation_mapping.txt')
 
-    forces = scipy.io.loadmat(input_force_mat)['forces']
-    poses = scipy.io.loadmat(input_pose_mat)['poses']
-    times = scipy.io.loadmat(input_times)['times']
-    labels = scipy.io.loadmat(input_labels)['label']
-    annotations = scipy.io.loadmat(input_annotation_mat)
+    data = scipy.io.loadmat(data_mat_file)['data']
+    forces = data[:, len(data[0])-26:len(data[0])]
+    poses = data[:, 0:len(data[0])-26]
+    times = scipy.io.loadmat(times_file)['times']
+    tf_ordering = scipy.io.loadmat(tf_ordering_file)['tfs'][0]
+    tf_ordering = clean_tf_ordering(tf_ordering)
+    annotations = scipy.io.loadmat(annotation_mat_file)
+    # labels should be the length of the data array, indicating which file the data originally came from
+    labels = scipy.io.loadmat(labels_file)['label']
 
     # convert to ints/strings
     # NOTE: msec is really nsec, mistake in the mat file
@@ -128,24 +137,25 @@ def fill_annotations(annotation_dict, annotations, forces, poses, times, labels,
     start_time_nsec = annotations['start_time_msec']
     end_time_sec = annotations['end_time_sec']
     end_time_nsec = annotations['end_time_msec']
-    annoation_labels = annotations['file_index']
+    annotation_labels = annotations['file_index']
 
-    window_size = 100
+    window_size = 1
 
     trials = dict()
-    load = True
+    load = False
     if load:
         trials = pickle.load(open('/home/mark/Desktop/trials.pkl', 'rb'))
     else:
-        for annoation_label in annoation_labels:
-            trials[str(annoation_label[0]) + '.' + str(annoation_label[1])] = TrialContent(annoation_label, forces,
+        for annotation_label in np.vstack({tuple(row) for row in annotation_labels}):
+            trials[str(annotation_label[0]) + '.' + str(annotation_label[1])] = TrialContent(annotation_label, forces,
                                                                                            poses, times,
                                                                                            labels)
         pickle.dump(trials, open('/home/mark/Desktop/trials.pkl', 'wb'))
 
     for idx in range(0, len(action_arr)):
-        cur_label = annoation_labels[idx]
+        cur_label = annotation_labels[idx]
         next_action_idx = -1
+        # pull has no next action
         if action_arr[idx] != 'pull' and idx < len(action_arr)-1:
             next_action_idx = annotation_mapping[action_arr[idx+1]]
         start_sec = start_time_sec[idx]
@@ -154,6 +164,10 @@ def fill_annotations(annotation_dict, annotations, forces, poses, times, labels,
         end_nsec = end_time_nsec[idx]
 
         cur_trial = trials[str(cur_label[0]) + '.' + str(cur_label[1])]
+
+        # skip trials we aren't processing this time
+        if len(cur_trial.times) == 0:
+            continue
 
         # get index of the start and end time
         start_time_idx = find_time_idx(cur_trial.times, start_sec, start_nsec)
@@ -262,6 +276,8 @@ def dump_annotations(annotation_dict):
     for annotation in annotation_dict:
         anno_obj = annotation_dict[annotation]
         anno_obj_len = len(anno_obj.end_times)
+        if anno_obj_len == 0: # continue if this action wasn't used (empty windows)
+            continue
         window_size = anno_obj.pose_prewindows[0].shape[0]
         length = anno_obj_len * window_size*2
         pose_window_width = anno_obj.pose_prewindows[0].shape[1]
@@ -303,6 +319,15 @@ def dump_annotations(annotation_dict):
         scipy.io.savemat(output_dir + "/" + annotation + "_windows.mat", {'windows': write_arr, 'pose_window_width':
             pose_window_width, 'force_window_width': force_window_width, 'window_size': window_size})
         print "Wrote mat to : %s" % str(output_dir + '/' + annotation + "_windows.mat")
+
+
+def clean_tf_ordering(tf_ordering):
+    tf_ordering = [x for tf_ordering[0] in tf_ordering for x in tf_ordering[0]]
+    tf_ordering = [x for tf_ordering[0] in tf_ordering for x in tf_ordering[0]]
+    new_ordering = []
+    for i in range(0, len(tf_ordering)):
+        new_ordering.append([str(tf_ordering[i][0][0]), str(tf_ordering[i][1][0])])
+    return new_ordering
 
 
 if __name__ == "__main__":
