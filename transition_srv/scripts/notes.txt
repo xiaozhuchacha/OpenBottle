@@ -1,0 +1,19 @@
+Transition Model NN Notes
+----------------------------------------------------
+
+Transition Model
+------------------------------
+Losses:
+- Residual: between human precondition and autoencoder 
+- Residual: between human postcondition and autoencoder 
+- Cost: difference between predicted current action (unscaled log prob) and actual current
+- Cost: difference between predicted next action (unscaled log prob) and actual next
+
+Training:
+- Minimizes the total loss between residusals (loss scaled by 0.1) and costs
+
+Embodiment Mapping Model
+------------------------------
+- Minimizes residual loss between human ground truh and robot data
+- Residual is computed in the autoencoder space
+  - Human autoencoder and robot autoencoder space are different, but the network just minimizes the residual

@@ -1,0 +1,11 @@
+
+% the following is unnecessary, but is an example of computing the offset of 
+% pose data from the tf_ordering of the poses, avoiding the use of magic numbers
+function [idx] = tf_offset_lookup(frame_id, child_frame_id, tf_ordering)
+  for idx = 1:size(tf_ordering, 2)
+    if strcmp(tf_ordering{1,idx}.frame_id, frame_id) && strcmp(tf_ordering{1,idx}.child_frame_id, child_frame_id)
+      return; % idx is set
+    end
+  end
+  idx = -1 % not found
+end
