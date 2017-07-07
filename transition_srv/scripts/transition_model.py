@@ -84,6 +84,8 @@ def train_model():
                 # print(' train accuracy (current): {:.9f}'.format(accuracy_current.eval({x_pre: dl.training_pre_data, x_post: dl.training_post_data, y_current: dl.training_current_action})))
                 # print(' test accuracy (current): {:.9f}'.format(accuracy_current.eval({x_pre: dl.testing_pre_data, x_post: dl.testing_post_data, y_current: dl.testing_current_action})))
 
+                test_action_accuracy(accuracy_next, x_post, y_current, y_next, dl, training=False)
+
         print("Optimization Finished!")
 
         if not os.path.exists('./models/transition'):
@@ -116,12 +118,18 @@ def train_mapping():
         x = x_map_input
         y = y_map_output
 
-
         # Parameters
         learning_rate = 0.001
         training_epochs = 5000
         batch_size = 100
         display_step = 50
+        total_batch = 20
+
+        # Calculate accuracy
+        # correct_pred_current = tf.equal(tf.argmax(pred_current, 1), tf.argmax(y_current, 1))
+        correct_pred_next = tf.equal(tf.argmax(pred_next, 1), tf.argmax(y_next, 1))
+        # accuracy_current = tf.reduce_mean(tf.cast(correct_pred_current, 'float'))
+        accuracy_next = tf.reduce_mean(tf.cast(correct_pred_next, 'float'))
 
         # Define loss and optimizer
         residual = tf.reduce_mean(tf.squared_difference(y, y_gt))
@@ -139,23 +147,41 @@ def train_mapping():
         # Launch the graph
         sess.run(init)
 
+        num_training = training_epochs * total_batch * batch_size
+        # robot data projected to human subspace
+        mapped_robot_data = np.zeros((num_training, n_dim1), dtype=np.float)
+        action_idx_data = np.full((num_training, len(dl.index_name)), -2, dtype=np.int)
+        next_action_idx_data = np.full((num_training, len(dl.index_name)), -2, dtype=np.int)
+        data_idx = 0
         # Training cycle
         for epoch in range(training_epochs):
             avg_cost = 0.
-            total_batch = 20
+
             # Loop over all batches
             for i in range(total_batch):
-                x_batch, y_batch = rdl.next_training_batch(batch_size)
+                x_batch, y_batch, action_idx_batch, next_action_idx_batch = rdl.next_training_batch(batch_size)
                 # Run optimization op (backprop) and cost op (to get loss value)
                 feed = {x: x_batch, y_gt: y_batch}
                 _, c = sess.run([optimizer, residual], feed_dict=feed)
                 # Compute average loss
                 avg_cost += c / total_batch
 
+                # collect data to feed to accuracy eval
+                mapped_robot_data[data_idx:data_idx+batch_size,:] = y_map_output.eval({x_map_input: x_batch})
+                action_idx_data[data_idx:data_idx+batch_size,:] = dl.one_hot(action_idx_batch, len(dl.index_name))
+                next_action_idx_data[data_idx:data_idx+batch_size,:] = dl.one_hot(next_action_idx_batch, len(dl.index_name))
+                data_idx += batch_size
 
             # Display logs per epoch step
             if epoch % display_step == 0:
                 print('Epoch: {:04d} cost: {:.9f}'.format(epoch, avg_cost))
+
+                print(' accuracy (next): {:.9f}'.format(accuracy_next.eval({ae_post_enc: mapped_robot_data[0:data_idx],
+                                                                            y_current: action_idx_data[0:data_idx],
+                                                                            y_next: next_action_idx_data[0:data_idx]})))
+                test_action_accuracy_map(accuracy_next, ae_post_enc, y_current, y_next,
+                                         mapped_robot_data[0:data_idx], action_idx_data[0:data_idx],
+                                         next_action_idx_data[0:data_idx], dl)
 
         print("Optimization Finished!")
 
@@ -257,6 +283,71 @@ def run_demo():
             else:
                 print(' {}\t{:.6f}\t{:.6f}'.format(name, res_current[0,j], res_next[0,j]))
 
+'''
+Tests the accuracy of a single action's encoding/decoding
+'''
+def test_action_accuracy(accuracy_next, x_post, y_current, y_next, dl=tm.DataLoader(),
+                         training=False):
+    if training:
+        # pre_data = dl.training_pre_data
+        post_data = dl.training_post_data
+        current_action = dl.training_current_action
+        next_action = dl.training_next_action
+        type_str = 'training'
+    else:
+        # pre_data = dl.testing_pre_data
+        post_data = dl.testing_post_data
+        current_action = dl.testing_current_action
+        next_action = dl.testing_next_action
+        type_str = 'testing'
+
+    for action_idx in range(1, len(dl.index_name)):
+        # find matching indicies for this action
+        index_arr = np.full((1, 1), action_idx)
+        action_one_hot = dl.one_hot(index_arr, len(dl.index_name))
+        action_indices = np.where((current_action == action_one_hot).all(axis=1))[0]
+
+        if len(dl.index_name[action_idx]) < 7:
+            tab_str = '\t\t\t'
+        elif len(dl.index_name[action_idx]) >= 7 and len(dl.index_name[action_idx]) < 10:
+            tab_str = '\t\t'
+        else:
+            tab_str = '\t'
+
+        print(' {}:{} {} accuracy (next): {:.9f}'.format(dl.index_name[action_idx],
+                                                         tab_str,
+                                                         type_str,
+                                                         accuracy_next.eval({x_post: post_data[action_indices,:],
+                                                                             y_current: current_action[action_indices,:],
+                                                                             y_next: next_action[action_indices,:]})))
+
+
+'''
+Tests the accuracy of a single action's encoding/decoding during mapping
+'''
+def test_action_accuracy_map(accuracy_next, ae_post_enc, y_current, y_next, mapped_robot_data,
+                             action_idx_data, next_action_idx_data, dl=tm.DataLoader()):
+
+    for action_idx in range(1, len(dl.index_name)):
+        # find matching indicies for this action
+        index_arr = np.full((1, 1), action_idx)
+        action_one_hot = dl.one_hot(index_arr, len(dl.index_name))
+        action_indices = np.where((action_idx_data == action_one_hot).all(axis=1))[0]
+
+        if len(dl.index_name[action_idx]) < 7:
+            tab_str = '\t\t\t'
+        elif len(dl.index_name[action_idx]) >= 7 and len(dl.index_name[action_idx]) < 10:
+            tab_str = '\t\t'
+        else:
+            tab_str = '\t'
+
+        print(' {}:{} accuracy (next): {:.9f}'.format(dl.index_name[action_idx],
+                                                      tab_str,
+                                                      accuracy_next.eval({ae_post_enc: mapped_robot_data[action_indices,:],
+                                                                          y_current: action_idx_data[action_indices,:],
+                                                                          y_next: next_action_idx_data[action_indices,:]})))
+
+
 def test_model():
 
     dl = tm.DataLoader()
@@ -319,10 +410,11 @@ def test_sequence():
             for j in range(len(dl.index_name)):
                 name = dl.index_name[j]
                 if len(name) < 7:
-                    print(' {}\t\t{:.6f}\t{:.6f}'.format(name, res_current[0,j], res_next[0,j]))
+                    print(' {}\t\t\t{:.6f}\t{:.6f}'.format(name, res_current[0,j], res_next[0,j]))
                 else:
                     print(' {}\t{:.6f}\t{:.6f}'.format(name, res_current[0,j], res_next[0,j]))
             break
+
 
 '''
 Encode the human measurements into low-dimensional subspace

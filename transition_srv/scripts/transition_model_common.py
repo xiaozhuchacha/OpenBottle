@@ -96,7 +96,8 @@ class DataLoader:
         self.testing_current_action = testing_current_action
         self.testing_next_action = testing_next_action
 
-    def one_hot(self,idx, len):
+    @staticmethod
+    def one_hot(idx, len):
         out = np.zeros((idx.shape[0], len), dtype=np.float)
         for i in range(idx.shape[0]):
             out[i, idx[i]] = 1.0
@@ -198,6 +199,7 @@ class RobotDataLoader:
         self.human_enc_post = []
         self.human_enc_pre = []
         self.human_enc_action = []
+        self.human_enc_next_action = []
 
         # Encode all the human data
         n_input = self.dl.feature_len
@@ -213,6 +215,7 @@ class RobotDataLoader:
             self.human_enc_post.append(y_enc_post)
             # self.human_enc_pre.append(y_enc_pre)
             self.human_enc_action.append(np.argmax(self.dl.training_current_action[i]))
+            self.human_enc_next_action.append(np.argmax(self.dl.training_next_action[i]))
             self.human_enc_dim = y_enc_post.shape[1]
 
 
@@ -224,7 +227,9 @@ class RobotDataLoader:
             # pre_data = self.human_enc_pre[idx]
             post_data = self.human_enc_post[idx]
             action = self.human_enc_action[idx]
+            next_action_idx = self.human_enc_next_action[idx]
 
+            # fetch a human example, we will use this example's action index to find a mapping to the robot
             if action in self.valid_actions:
                 success = True
                 action_idx = action
@@ -232,25 +237,30 @@ class RobotDataLoader:
                 human_example = post_data
                 break
 
+        # fetch a robot example using human example action index
         robot_idx = random.randint(0, self.action_dict[action_idx][0].shape[0]-1)
         # robot_example = (self.action_dict[action_idx][0][robot_idx], self.action_dict[action_idx][1][robot_idx])
         robot_example = self.action_dict[action_idx][1][robot_idx]
-        return human_example, robot_example, action_idx
+        return human_example, robot_example, action_idx, next_action_idx
 
 
     def next_training_batch(self, batch_size):
         dat_human = np.zeros((batch_size, self.human_enc_dim), dtype=np.float)
         dat_robot = np.zeros((batch_size, self.robot_dim), dtype=np.float)
+        dat_action = np.zeros((batch_size, 1), dtype=np.int)
+        dat_next_action = np.zeros((batch_size, 1), dtype=np.int)
 
         for i in range(batch_size):
             # idx = random.randint(0,1) #select pre or post randomly
-            sample_human, sample_robot, _ = self.get_random_pair()
+            sample_human, sample_robot, action_idx, next_action_idx = self.get_random_pair()
             # dat_human[i,:] = sample_human[idx]
             # dat_robot[i,:] = sample_robot[idx]
             dat_human[i,:] = sample_human
             dat_robot[i,:] = sample_robot
+            dat_action[i,:] = action_idx
+            dat_next_action[i,:] = next_action_idx
 
-        return (dat_robot, dat_human)
+        return (dat_robot, dat_human, dat_action, dat_next_action)
         # print(dat_human)
         # print(dat_robot)
 
@@ -297,7 +307,7 @@ def create_mapping_model(x, n_dim1, n_dim2, train=False):
 
 def create_model(n_input, n_classes, train=False):
 
-    enc_size = 16
+    enc_size = 6
 
     def create_autoencoder(x):
         # layer_sizes = [64, 16, 32, 128, n_input]
@@ -311,7 +321,6 @@ def create_model(n_input, n_classes, train=False):
         for i in range(1, len(layer_sizes)):
             weights.append(get_scope_variable('ae', 'weight_{}'.format(i), [layer_sizes[i-1], layer_sizes[i]], initializer=tf.random_normal_initializer()))
             biases.append(get_scope_variable('ae', 'bias_{}'.format(i), [layer_sizes[i]], initializer=tf.constant_initializer(0.0)))
-
 
         layer_0 = tf.add(tf.matmul(x, weights[0]), biases[0])
         layer_0 = tf.nn.sigmoid(layer_0)
