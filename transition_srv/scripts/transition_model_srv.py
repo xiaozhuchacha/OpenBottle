@@ -92,7 +92,7 @@ def trans_prob(req):
         x_robot_post = copy.deepcopy(np.transpose(prev_postcondition))
 
         # y_output_pre = y_map_output.eval({x_map_input: x_robot_pre})
-        y_output_post = y_map_output.eval({x_map_input: x_robot_post})
+        y_output_post = y_map_output.eval({x_map_input: x_robot_post, keep_prob: 1.0})
 
         # res_current = pred_current_sm.eval({ae_pre_enc: y_output_pre, ae_post_enc: y_output_post})
         if cur_action == 'start':

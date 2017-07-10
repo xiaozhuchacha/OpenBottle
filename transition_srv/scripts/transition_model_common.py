@@ -274,9 +274,10 @@ def get_scope_variable(scope_name, var, shape, initializer):
             v = tf.get_variable(var, shape, initializer=initializer)
     return v
 
-def create_mapping_model(x, n_dim1, n_dim2, train=False):
+
+def create_mapping_model(x, keep_prob, n_dim1, n_dim2, train=False):
     with tf.variable_scope('mapping'):
-        layer_sizes = [12, 12, 12, 12, n_dim2]
+        layer_sizes = [10, 10, 10, n_dim2]
 
         # Store layers weight & bias
         weights = [ get_scope_variable('map', 'weight_0', [n_dim1, layer_sizes[0]], initializer=tf.random_normal_initializer()) ]
@@ -284,21 +285,33 @@ def create_mapping_model(x, n_dim1, n_dim2, train=False):
 
         for i in range(1, len(layer_sizes)):
             weights.append(get_scope_variable('map', 'weight_{}'.format(i), [layer_sizes[i-1], layer_sizes[i]], initializer=tf.random_normal_initializer()))
-            biases.append(get_scope_variable('map', 'bias_{}'.format(i), [layer_sizes[i]], initializer=tf.constant_initializer(0.0)))
+            biases.append(get_scope_variable('map', 'bias_{}'.format(i), [layer_sizes[i]],
+                                             initializer=tf.constant_initializer(0.0)))
 
         layer_0 = tf.add(tf.matmul(x, weights[0]), biases[0])
         layer_0 = tf.nn.relu(layer_0)
 
         last_layer = layer_0
-        for i in range(1, len(layer_sizes)-1):
-            layer_i = tf.add(tf.matmul(last_layer, weights[i]), biases[i])
+        layer_idx = 1
+        dropout_layer = 1
+        add_dropout = True
+        while layer_idx < dropout_layer:
+            layer_i = tf.add(tf.matmul(last_layer, weights[layer_idx]), biases[layer_idx])
             layer_i = tf.nn.relu(layer_i)
-
-            # if train:
-            #     layer_i = tf.nn.dropout(layer_i, 0.8)
 
             # layer_1 = tf.nn.batch_normalization(layer_1, weights['n1_mean'], weights['n1_var'], 0, 0, 1e-3)
             last_layer = layer_i
+            layer_idx += 1
+
+        if add_dropout:
+            layer_i = tf.nn.dropout(last_layer, keep_prob)
+            last_layer = layer_i
+
+        while layer_idx < len(layer_sizes)-1:
+            layer_i = tf.add(tf.matmul(last_layer, weights[layer_idx]), biases[layer_idx])
+            layer_i = tf.nn.relu(layer_i)
+            last_layer = layer_i
+            layer_idx += 1
 
         out_layer = tf.matmul(last_layer, weights[-1]) + biases[-1]
 
@@ -392,6 +405,8 @@ def create_model(n_input, n_classes, train=False):
 
         robot_dim = 7
         x_map_input = tf.placeholder('float', [None, robot_dim], name='x_map_input')
-        y_map_output = create_mapping_model(x_map_input, robot_dim, enc_size, train)
+        # dropout keep probability
+        keep_prob = tf.placeholder('float', name='keep_prob')
+        y_map_output = create_mapping_model(x_map_input, keep_prob, robot_dim, enc_size, train)
 
-        return x_map_input, y_map_output, x_post, y_current, y_next, pred_next, ae_post_enc, ae_post_out
+        return x_map_input, y_map_output, x_post, y_current, y_next, pred_next, ae_post_enc, ae_post_out, keep_prob
