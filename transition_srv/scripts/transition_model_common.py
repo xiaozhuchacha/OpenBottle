@@ -277,7 +277,7 @@ def get_scope_variable(scope_name, var, shape, initializer):
 
 def create_mapping_model(x, keep_prob, n_dim1, n_dim2, train=False):
     with tf.variable_scope('mapping'):
-        layer_sizes = [10, 10, 10, n_dim2]
+        layer_sizes = [8, 8, 8, 8, n_dim2]
 
         # Store layers weight & bias
         weights = [ get_scope_variable('map', 'weight_0', [n_dim1, layer_sizes[0]], initializer=tf.random_normal_initializer()) ]
@@ -293,23 +293,34 @@ def create_mapping_model(x, keep_prob, n_dim1, n_dim2, train=False):
 
         last_layer = layer_0
         layer_idx = 1
-        dropout_layer = 1
+        dropout_layers = [1, 2, 3]
+        dropout_idx = 0
         add_dropout = True
-        while layer_idx < dropout_layer:
+
+        while layer_idx < len(layer_sizes)-1:
+            while dropout_idx < len(dropout_layers) and layer_idx < dropout_layers[dropout_idx]:
+                layer_i = tf.add(tf.matmul(last_layer, weights[layer_idx]), biases[layer_idx])
+                layer_i = tf.nn.relu(layer_i)
+
+                # layer_1 = tf.nn.batch_normalization(layer_1, weights['n1_mean'], weights['n1_var'], 0, 0, 1e-3)
+                last_layer = layer_i
+                layer_idx += 1
+
+            # finished adding dropout layers
+            if dropout_idx >= len(dropout_layers):
+                break
+
+            if add_dropout:
+                layer_i = tf.nn.dropout(last_layer, keep_prob)
+                last_layer = layer_i
+                dropout_idx += 1
+
+        # create any remaining layers (e.g. if there are no dropout layers)
+        while layer_idx < len(layer_sizes)-1:
             layer_i = tf.add(tf.matmul(last_layer, weights[layer_idx]), biases[layer_idx])
             layer_i = tf.nn.relu(layer_i)
 
             # layer_1 = tf.nn.batch_normalization(layer_1, weights['n1_mean'], weights['n1_var'], 0, 0, 1e-3)
-            last_layer = layer_i
-            layer_idx += 1
-
-        if add_dropout:
-            layer_i = tf.nn.dropout(last_layer, keep_prob)
-            last_layer = layer_i
-
-        while layer_idx < len(layer_sizes)-1:
-            layer_i = tf.add(tf.matmul(last_layer, weights[layer_idx]), biases[layer_idx])
-            layer_i = tf.nn.relu(layer_i)
             last_layer = layer_i
             layer_idx += 1
 
@@ -320,7 +331,7 @@ def create_mapping_model(x, keep_prob, n_dim1, n_dim2, train=False):
 
 def create_model(n_input, n_classes, train=False):
 
-    enc_size = 6
+    enc_size = 8
 
     def create_autoencoder(x):
         # layer_sizes = [64, 16, 32, 128, n_input]

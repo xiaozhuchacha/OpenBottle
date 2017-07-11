@@ -122,7 +122,7 @@ def train_mapping():
 
         # Parameters
         learning_rate = 0.001
-        training_epochs = 5000
+        training_epochs = 7000
         batch_size = 100
         display_step = 50
         total_batch = 20
