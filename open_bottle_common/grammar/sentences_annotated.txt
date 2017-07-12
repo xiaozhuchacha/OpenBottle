@@ -1,0 +1,80 @@
+12
+approach
+move
+grasp_left
+grasp_right
+ungrasp_left
+ungrasp_right
+twist
+push
+neutral
+pull
+pinch
+unpinch
+
+65
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  ungrasp_right  move  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  ungrasp_right  move  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  ungrasp_right  move  grasp_right  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  pull  
+approach  pinch  twist  unpinch  move  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  ungrasp_right  move  grasp_right  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  ungrasp_right  move  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  grasp_right  twist  pull  
+approach  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  twist  pull  
+approach  grasp_right  twist  ungrasp_right  move  grasp_right  pull  
+approach  push  twist  neutral  move  push  twist  neutral  grasp_right  pull  
+approach  pinch  twist  unpinch  move  grasp_right  twist  ungrasp_right  move  grasp_right  pull 
