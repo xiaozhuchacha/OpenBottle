@@ -74,8 +74,8 @@ def trans_prob(req):
     n_dim1 = 16
     n_dim2 = 7
 
-    x_map_input, y_map_output, x_post, y_current, y_next, pred_next, ae_post_enc, ae_post_out = tm.create_model(
-        n_input, n_classes)
+    x_map_input, y_map_output, x_post, y_current, y_next, pred_next, ae_post_enc, ae_post_out, keep_prob = \
+        tm.create_model(n_input, n_classes)
     pred_next_sm = tf.nn.softmax(pred_next)
     # pred_current_sm = tf.nn.softmax(pred_current)
 
