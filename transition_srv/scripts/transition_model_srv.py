@@ -74,9 +74,8 @@ def trans_prob(req):
     n_dim1 = 16
     n_dim2 = 7
 
-    x_map_input, y_map_output, x_post, y_current, y_next, pred_next, ae_post_enc, ae_post_out, keep_prob = \
-        tm.create_model(n_input, n_classes)
-    pred_next_sm = tf.nn.softmax(pred_next)
+    tmm = tm.create_model(n_input, n_classes)
+    pred_next_sm = tf.nn.softmax(tmm.pred_next)
     # pred_current_sm = tf.nn.softmax(pred_current)
 
     # Launch the graph
@@ -92,7 +91,7 @@ def trans_prob(req):
         x_robot_post = copy.deepcopy(np.transpose(prev_postcondition))
 
         # y_output_pre = y_map_output.eval({x_map_input: x_robot_pre})
-        y_output_post = y_map_output.eval({x_map_input: x_robot_post, keep_prob: 1.0})
+        y_output_post = tmm.y_map_output.eval({tmm.x_map_input: x_robot_post, tmm.keep_prob: 1.0})
 
         # res_current = pred_current_sm.eval({ae_pre_enc: y_output_pre, ae_post_enc: y_output_post})
         if cur_action == 'start':
@@ -106,7 +105,7 @@ def trans_prob(req):
         # print("%s priors:" % cur_action)
         # print(prior_probs[cur_idx,:])
 
-        res_next = pred_next_sm.eval({ae_post_enc: y_output_post, y_current: cur_one_hot})
+        res_next = pred_next_sm.eval({tmm.ae_post_enc: y_output_post, tmm.y_current: cur_one_hot})
 
         # res_current_idx = np.argmax(res_current)
         res_next_idx = np.argmax(res_next)
