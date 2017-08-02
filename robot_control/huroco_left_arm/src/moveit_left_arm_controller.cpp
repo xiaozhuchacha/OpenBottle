@@ -11,8 +11,8 @@ ArmManipulator::ArmManipulator(moveit::planning_interface::MoveGroupInterface &g
 	move_group_.setPlannerId("RRTConnectkConfigDefault");
 	move_group_.setPlanningTime(5.0);
 	move_group_.allowReplanning(true);
-	move_group_.setMaxVelocityScalingFactor(0.5);
-	move_group_.setMaxAccelerationScalingFactor(0.5);
+	move_group_.setMaxVelocityScalingFactor(0.75);
+	move_group_.setMaxAccelerationScalingFactor(1.0);
 
 	exec_status_sub_ = nh_.subscribe("/robot/limb/left/follow_joint_trajectory/result", 1000, &ArmManipulator::getExecStatus, this);
 	joint_sub_ = nh_.subscribe("/robot/joint_states", 1000, &ArmManipulator::getLeftArmState, this);
@@ -93,7 +93,6 @@ void ArmManipulator::getExecStatus(const control_msgs::FollowJointTrajectoryActi
 
 	sub_trigger_ = false;
 }
-
 
 
 int ArmManipulator::rotateWrist(const double radian)
@@ -198,6 +197,35 @@ int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoi
 		return cartesian_status;
 	}
 
+}
+
+
+int ArmManipulator::initPose()
+{
+	std::map<std::string, double> joint_values;
+	joint_values["left_s0"] = 0.96;
+	joint_values["left_s1"] = -0.88;
+	joint_values["left_e0"] = -0.91;
+	joint_values["left_e1"] = 2.44;
+	joint_values["left_w0"] = 1.297;
+	joint_values["left_w1"] = -0.94;
+	joint_values["left_w2"] = 0.04;
+
+	move_group_.setJointValueTarget(joint_values);
+	moveit::planning_interface::MoveGroupInterface::Plan plan;
+
+	int joint_space_status = tryPlanning(move_group_, plan);
+	int execute_status;
+
+	if(joint_space_status) {
+		ROS_INFO("Rotating joints");
+		execute_status = move_group_.execute(plan);
+		return execute_status;
+	}
+	else {
+		ROS_ERROR("Invalid rotation");
+		return joint_space_status;
+	}
 }
 
 

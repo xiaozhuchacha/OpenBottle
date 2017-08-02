@@ -1,0 +1,4 @@
+<launch>
+	<node name="pipeline_test" pkg="pipeline_test" type="pipeline_test" respawn="false" output="screen">
+	</node>
+</launch>

@@ -66,6 +66,7 @@ add_service_files(
    FILES
    graspPose.srv
    graspCap.srv
+   graspDoor.srv
 )
 
 ## Generate actions in the 'action' folder

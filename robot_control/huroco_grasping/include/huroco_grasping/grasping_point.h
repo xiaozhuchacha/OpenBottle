@@ -14,6 +14,8 @@
 
 #include "huroco_grasping/graspPose.h"
 #include "huroco_grasping/graspCap.h"
+#include "huroco_grasping/graspDoor.h"
+
 #include "baxter_core_msgs/EndpointState.h"
 
 
@@ -37,6 +39,7 @@ private:
 
 	ros::ServiceServer grasping_;
 	ros::ServiceServer cap_;
+	ros::ServiceServer door_;
 
 	ros::Subscriber robot_state_sub_;
 
@@ -52,6 +55,7 @@ private:
 	std::vector<geometry_msgs::Pose> grasping_poses_;
 
 	std::string bottle_;
+	std::string door_name_;
 
 	double radius_;
 	double dense_;
@@ -71,6 +75,9 @@ private:
 
 	bool graspingCap(huroco_grasping::graspCap::Request &req,
 					 huroco_grasping::graspCap::Response &res);
+
+	bool graspingDoor(huroco_grasping::graspDoor::Request &req,
+					  huroco_grasping::graspDoor::Response &res);
 
 
 	bool sub_trigger_;

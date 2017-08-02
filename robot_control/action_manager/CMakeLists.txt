@@ -16,11 +16,12 @@ find_package(catkin REQUIRED COMPONENTS
   baxter_core_msgs
   message_generation
   right_gripper_receiver
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
 find_package(cmake_modules)
-find_package(catkin REQUIRED COMPONENTS baxter_core_msgs huroco_left_arm huroco_right_arm huroco_grasping right_gripper_receiver)
+find_package(catkin REQUIRED COMPONENTS baxter_core_msgs huroco_left_arm huroco_right_arm huroco_grasping right_gripper_receiver tf)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
 
@@ -69,7 +70,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 add_service_files(
    FILES
    execAction.srv
-   setBottle.srv 
+   setObject.srv 
 )   
 ## Generate actions in the 'action' folder
 # add_action_files(

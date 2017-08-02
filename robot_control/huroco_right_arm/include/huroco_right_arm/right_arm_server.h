@@ -8,7 +8,6 @@
 #include "huroco_right_arm/moveit_right_arm_controller.h"
 
 // service files
-#include "huroco_right_arm/rightExec.h"
 #include "huroco_right_arm/rightCartesian.h"
 #include "huroco_right_arm/rightInit.h"
 #include "huroco_right_arm/rightStop.h"

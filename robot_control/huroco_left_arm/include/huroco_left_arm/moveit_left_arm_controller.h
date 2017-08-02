@@ -36,6 +36,8 @@ public:
 
 	void abortExecution();
 
+	int initPose();
+
 private:
 	void getLeftArmState(const sensor_msgs::JointState msg);
 
