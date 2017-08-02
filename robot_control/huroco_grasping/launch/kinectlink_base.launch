@@ -1,0 +1,7 @@
+<launch>
+<node pkg="tf" type="static_transform_publisher" name="kinect_pose" args="-0.079616, 0.768013, 0.264997, -0.647214, 0.661218, -0.277091, -0.259086 /kinect2_link0 /base 100" />
+<node pkg="tf" type="static_transform_publisher" name="kinect_pose1" args="0, -0.025, 0.025, 0, 0, 0, 1 /kinect2_link /kinect2_link0 100" />
+<!--node pkg="tf" type="static_transform_publisher" name="bottle_to_coke_broadcaster" args="-0.01 -0.04 -0.37 -0.5 0 0 /bottle64 /coke 100" /-->
+<node pkg="tf" type="static_transform_publisher" name="sign_to_door_broadcaster" args="-0.07 0.29 -0.06 -1.57 0 0 /main_door /door 100" />
+<node pkg="tf" type="static_transform_publisher" name="bear_to_eraser_broadcaster" args="-0.12 -0.13 0.305 0 0 0 /fridge /eraser 100" />
+</launch>

@@ -1,5 +1,5 @@
-
 #include "huroco_grasping/grasping_point.h"
+
 
 #define PI 3.1415926 
 
@@ -8,10 +8,11 @@ const std::string name = "/huroco_grasping";
 
 
 Grasp::Grasp()
-		:spinner_(1)
+		:spinner_(1), nh_(ros::NodeHandle("~"))
 {
 	cap_ = nh_.advertiseService(name + "/cap_pose", &Grasp::graspingCap, this);
 	grasping_ = nh_.advertiseService(name + "/grasping_pose", &Grasp::graspingPose, this);
+	door_ = nh_.advertiseService(name + "/door_pose", &Grasp::graspingDoor, this);
 
 	spinner_.start();
 }
@@ -407,6 +408,71 @@ bool Grasp::graspingCap(huroco_grasping::graspCap::Request &req,
 
 	return true;
 }
+
+
+bool Grasp::graspingDoor(huroco_grasping::graspDoor::Request &req,
+						 huroco_grasping::graspDoor::Response &res)
+{
+	door_name_ = req.door;
+	tf_status_ = true;
+
+	double yaw = PI/4 * 3;
+
+	tf::Quaternion trans_q(0, 0, 0, 1);
+	tf::Vector3 trans_pos(0.032, -0.262, 0.20);
+	tf::Transform trans_tf(trans_q, trans_pos);
+
+	tf::Quaternion yaw_q(tf::Vector3(0, 0, 1), yaw);
+	tf::Vector3 yaw_pos(0, 0, 0);
+	tf::Transform yaw_tf(yaw_q, yaw_pos);
+
+	tf::Quaternion y_rotation(tf::Vector3(0, 1, 0), PI);
+	tf::Transform y_rotation_tf(y_rotation, tf::Vector3(0 ,0, 0));
+
+	grasping_pose_tf_ = trans_tf * yaw_tf * y_rotation_tf;
+
+	huroco_left_arm::leftCartesian left_cartesian_srv;
+
+	tf::TransformListener listener;
+	tf::StampedTransform transform;
+
+	while(ros::ok()) {
+		ros::Time t = ros::Time(0);
+
+		try {
+			listener.waitForTransform("/base", door_name_, t, ros::Duration(1.0));
+			listener.lookupTransform("/base", door_name_, t, transform);
+		}
+		catch(tf::TransformException ex) {
+			ROS_ERROR("%s", ex.what());
+			tf_status_ = false;
+		}
+
+		tf::Transform pose = transform * grasping_pose_tf_;
+
+		grasping_pose_.orientation.x = pose.getRotation().x();
+		grasping_pose_.orientation.y = pose.getRotation().y();
+		grasping_pose_.orientation.z = pose.getRotation().z();
+		grasping_pose_.orientation.w = pose.getRotation().w();
+
+		grasping_pose_.position.x = pose.getOrigin().getX();
+		grasping_pose_.position.y = pose.getOrigin().getY();
+		grasping_pose_.position.z = pose.getOrigin().getZ();
+
+		break;
+	}
+
+	res.door_handle_pose.orientation.x = grasping_pose_.orientation.x;
+	res.door_handle_pose.orientation.y = grasping_pose_.orientation.y;
+	res.door_handle_pose.orientation.z = grasping_pose_.orientation.z;
+	res.door_handle_pose.orientation.w = grasping_pose_.orientation.w;
+
+	res.door_handle_pose.position.x = grasping_pose_.position.x;
+	res.door_handle_pose.position.y = grasping_pose_.position.y;
+	res.door_handle_pose.position.z = grasping_pose_.position.z;
+
+	res.status = tf_status_;
+} 
 
 
 int main(int argc, char **argv)

@@ -1,0 +1,5 @@
+<launch>
+  <node name="task_manager" pkg="task_manager" type="task_manager" respawn="false" output="screen" >
+  </node>
+
+</launch>

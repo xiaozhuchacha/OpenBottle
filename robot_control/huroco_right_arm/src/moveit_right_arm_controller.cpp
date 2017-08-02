@@ -12,7 +12,7 @@ ArmManipulator::ArmManipulator(moveit::planning_interface::MoveGroupInterface &g
 	move_group_.setPlannerId("RRTConnectkConfigDefault");
 	move_group_.setPlanningTime(5.0);
 	move_group_.allowReplanning(true);
-	move_group_.setMaxVelocityScalingFactor(0.5);
+	move_group_.setMaxVelocityScalingFactor(1.0);
 	move_group_.setMaxAccelerationScalingFactor(0.5);
 }
 
@@ -89,6 +89,9 @@ int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoi
 
 	/* reflex gripper TF */
 
+	double reflex_qx, reflex_qy, reflex_qz, reflex_w;
+	double reflex_x, reflex_y, reflex_z; 
+
 	tf::Quaternion reflex_q(0, 0, 0, 1);
 	tf::Vector3 reflex_t(-0.02, 0.022, -0.09);
 
@@ -128,6 +131,8 @@ int ArmManipulator::executeCartesianPath(std::vector<geometry_msgs::Pose> waypoi
 			}
 		}
 
+
+		
 		return exec_status_;
 	}
 	else {
@@ -146,13 +151,13 @@ void ArmManipulator::abortExecution()
 int ArmManipulator::initPose()
 {
 	std::map<std::string, double> joint_values;
-	joint_values["right_s0"] = -0.7643059275639074;
-	joint_values["right_s1"] = -0.8877913809886832;
-	joint_values["right_e0"] = 0.9131020639887926;
-	joint_values["right_e1"] = 2.446699356677235;
-	joint_values["right_w0"] = -1.2935292993843752;
-	joint_values["right_w1"] = -0.9453156605343862;
-	joint_values["right_w2"] = 0.04295146206079158;
+	joint_values["right_s0"] = -0.96;
+	joint_values["right_s1"] = -0.88;
+	joint_values["right_e0"] = 0.91;
+	joint_values["right_e1"] = 2.44;
+	joint_values["right_w0"] = -1.297;
+	joint_values["right_w1"] = -0.94;
+	joint_values["right_w2"] = 0.04;
 
 	move_group_.setJointValueTarget(joint_values);
 	moveit::planning_interface::MoveGroupInterface::Plan plan;

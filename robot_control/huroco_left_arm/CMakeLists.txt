@@ -66,6 +66,7 @@ add_service_files(
    leftCartesian.srv
    rotateLeftWrist.srv
    leftStop.srv
+   leftInit.srv
 )
 
 ## Generate actions in the 'action' folder
