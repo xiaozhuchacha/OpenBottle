@@ -1,8 +1,7 @@
 #include "huroco_right_arm/right_arm_server.h"
 
-
 RightArmServer::RightArmServer(ArmManipulator *manipulator, moveit::planning_interface::MoveGroupInterface &group)
-			:spinner_(2), controller_(manipulator)
+		: spinner_(2), controller_(manipulator)
 {
 	right_cartesian_ = nh_.advertiseService(name + "/right_cartesian", &RightArmServer::rightCartesianPath, this);
 	right_init_ = nh_.advertiseService(name + "/right_init", &RightArmServer::rightInit, this);
@@ -13,32 +12,28 @@ RightArmServer::RightArmServer(ArmManipulator *manipulator, moveit::planning_int
 	spinner_.start();
 }
 
-
 RightArmServer::~RightArmServer() {}
 
-
 bool RightArmServer::rightCartesianPath(huroco_right_arm::rightCartesian::Request &req,
-										huroco_right_arm::rightCartesian::Response &res)
+																				huroco_right_arm::rightCartesian::Response &res)
 {
-	res.status = controller_->executeCartesianPath(req.waypoints);
+	res.status = static_cast<bool>(controller_->executeCartesianPath(req.waypoints));
 	return true;
 }
 
 bool RightArmServer::rightInit(huroco_right_arm::rightInit::Request &req,
-							   huroco_right_arm::rightInit::Response &res)
+															 huroco_right_arm::rightInit::Response &res)
 {
-	res.status = controller_->initPose();
+	res.status = static_cast<bool>(controller_->initPose());
 	return true;
 }
 
-
 bool RightArmServer::rightStop(huroco_right_arm::rightStop::Request &req,
-							   huroco_right_arm::rightStop::Response &res)
+															 huroco_right_arm::rightStop::Response &res)
 {
 	controller_->abortExecution();
 	return true;
 }
-
 
 int main(int argc, char **argv)
 {
