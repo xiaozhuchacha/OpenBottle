@@ -1,0 +1,12 @@
+approach,1
+move,2
+grasp_left,3
+grasp_right,4
+ungrasp_left,5
+ungrasp_right,6
+twist,7
+push,8
+neutral,9
+pull,10
+pinch,11
+unpinch,12
