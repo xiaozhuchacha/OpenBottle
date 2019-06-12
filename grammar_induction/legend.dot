@@ -1,0 +1,22 @@
+digraph G {
+  graph[fontname = "DejaVu Sans"];node[fontname = "DejaVu Sans", fontsize=42];edge[fontname = "DejaVu Sans"];
+  subgraph legend{
+  label="Legend"
+  subgraph or {
+    or_text[group=l, shape=plaintext, style=solid, label="Or node\r", width=1.5]
+    or_legend[group=n, label="", shape=circle, fillcolor="#8cb7ff", style=filled, width=1.5, color=black nodesep=0]
+  }
+  subgraph and {
+    and_text[group=l, shape=plaintext, style=solid, label="And node\r", width=1.5]
+    and_legend[group=n, label="", shape=circle, fillcolor="#7ce57b", style=filled, width=1.5, color=black, nodesep=0]
+  }
+  subgraph terminal {
+    terminal_text[group=l, shape=plaintext, style=solid, label="Terminal node\r", width=1.5]
+    terminal_legend[group=n, label="", shape=box, fillcolor=grey90, style="rounded,filled", width=1.5, height=1, nodesep=-0.5]
+  }
+  or_text -> and_text[style=invis]
+  and_text -> terminal_text[style=invis]
+  or_legend -> and_legend[style=invis]
+  and_legend -> terminal_legend[style=invis]
+  }
+}

@@ -1,0 +1,10 @@
+approach,1
+grasp,2
+ungrasp,3
+twist,4
+move,5
+push,6
+unpush,7
+pinch,8
+unpinch,9
+pull,10
