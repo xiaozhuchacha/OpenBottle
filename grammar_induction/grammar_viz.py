@@ -85,7 +85,7 @@ def main():
 
         for i in range(num_terminals):
             aog.node_dict[str(sorted_annotations[i])] = OrNode(str(sorted_annotations[i]))
-            node_dict[str(sorted_annotations[i])] = [str(sorted_annotations[i]) + ' [shape=box, fillcolor=grey90, style="rounded,filled", ranksep=0.5, nodesep=0.5]\n']
+            node_dict[str(sorted_annotations[i])] = [str(sorted_annotations[i]) + ' [margin="0.2,0.1", shape=box, fillcolor=grey90, style="rounded,filled", ranksep=0.5, nodesep=0.5]\n']
 
         # find single-children OR nodes
         single_ors = {}
@@ -109,7 +109,7 @@ def main():
             root_and = line_and.split('\t')[0]
             children_and = line_and.split(' ]')[0].split('\t')[1][1:].split(' ')
             processed_children_and = []
-            node_dict[root_and] = [root_and + ' [shape=circle, fillcolor="#7ce57b", style=filled, color=black, ranksep=0.5, nodesep=0.5]\n']
+            node_dict[root_and] = [root_and + ' [label="", shape=circle, fillcolor="#7ce57b", style=filled, color=black, width=1, ranksep=0.5, nodesep=0.5]\n']
             for child_and in children_and:
                 print(root_and + ' -> ' + child_and)
                 fixed_child_and = child_and
@@ -131,7 +131,7 @@ def main():
             root_or = line_or.split('\t')[0]
             if root_or in single_ors:
                 continue
-            node_dict[root_or] = [root_or + ' [shape=circle, fillcolor="#8cb7ff", style=filled, color=black, ranksep=0.5, nodesep=0.5]\n']
+            node_dict[root_or] = [root_or + ' [label="", shape=circle, fillcolor="#8cb7ff", style=filled, color=black, width=1, ranksep=0.5, nodesep=0.5]\n']
             children_or = line_or.split(' ]')[0].split('\t')[1][1:].split(' ')
             weights_or = line_or.split(' ]')[1][2:].split(' ')
             processed_children_or = []
@@ -161,9 +161,9 @@ def main():
 
         with open(viz_file, 'w+') as f_out:
             f_out.write('digraph G {\n')
-            f_out.write('graph[fontname = "DejaVu Sans"];\n')
-            f_out.write('node[fontname = "DejaVu Sans"];\n')
-            f_out.write('edge[fontname = "DejaVu Sans"];\n')
+            f_out.write('graph[fontname = "DejaVu Sans", fontsize=28];\n')
+            f_out.write('node[fontname = "DejaVu Sans", fontsize=28];\n')
+            f_out.write('edge[fontname = "DejaVu Sans", fontsize=28];\n')
             for node_str in node_order_str:
                 for node_line in node_dict[node_str]:
                     f_out.write(node_line)

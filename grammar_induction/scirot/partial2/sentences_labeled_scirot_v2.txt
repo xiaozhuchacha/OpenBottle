@@ -1,0 +1,36 @@
+approach grasp twist ungrasp move grasp twist pull
+approach grasp twist ungrasp move grasp twist pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush ungrasp grasp pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush ungrasp grasp pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp pinch twist unpinch ungrasp move grasp twist pull
+approach grasp pinch twist unpinch ungrasp move grasp twist pull
+approach grasp pinch twist unpinch ungrasp move grasp twist pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush ungrasp grasp pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp push twist unpush ungrasp grasp pull
+approach grasp push twist unpush ungrasp move grasp pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp twist ungrasp move grasp twist pull
+approach grasp pinch twist unpinch ungrasp move grasp twist pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp pinch twist unpinch ungrasp move grasp twist pull
+approach grasp twist ungrasp move grasp twist pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp twist ungrasp move grasp twist pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush ungrasp grasp pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp twist ungrasp move grasp twist pull
+approach grasp pinch twist unpinch ungrasp move grasp twist pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp pinch twist unpinch ungrasp move grasp twist pull
+approach grasp push twist unpush ungrasp move grasp pull
+approach grasp push twist unpush pull
+approach grasp push twist unpush ungrasp move grasp push twist unpush pull
+approach grasp pinch twist unpinch ungrasp move grasp twist pull
+approach grasp push twist unpush pull
