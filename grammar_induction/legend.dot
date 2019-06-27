@@ -14,9 +14,15 @@ digraph G {
     terminal_text[group=l, shape=plaintext, style=solid, label="Terminal node\r", width=1.5]
     terminal_legend[group=n, label="", shape=box, fillcolor=grey90, style="rounded,filled", width=1.5, height=1, nodesep=-0.5]
   }
+  subgraph gep_terminal {
+    gep_text [group=l, shape=plaintext, style=solid, label="Parsing terminal", width=1.5]
+    gep_legend [group=n, label="", shape=circle, fillcolor="#f9ff59", style=filled, color=black, width=1.5, nodesep=0, fontsize=40]
+  }
   or_text -> and_text[style=invis]
   and_text -> terminal_text[style=invis]
   or_legend -> and_legend[style=invis]
   and_legend -> terminal_legend[style=invis]
+  terminal_text -> gep_text[style=invis]
+  terminal_legend -> gep_legend[style=invis]
   }
 }
